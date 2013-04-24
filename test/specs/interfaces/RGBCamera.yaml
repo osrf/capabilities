@@ -1,0 +1,27 @@
+%YAML 1.1
+# Capability Interface file for RGBCamera
+---
+# Name of the Interface
+name: RGBCamera
+spec_version: 1
+#
+#
+description: 'This Capability describes the interface exposed by a generic RGBCamera.'
+#
+#
+interface:
+  # Topics
+  topics:
+    # Topics provided by the interface
+    provides:
+      'camera/image_raw':
+        type: 'sensor_msgs/Image'
+        description: 'raw image from the camera'
+      'camera/camera_info':
+        type: 'sensor_msgs/CameraInfo'
+    # Topics expect by the interface
+    requires: {}
+  # Services provided by the interface
+  services:
+    'camera/set_info':
+      type: 'sensor_msgs/SetCameraInfo'

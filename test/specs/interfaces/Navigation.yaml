@@ -1,0 +1,37 @@
+%YAML 1.1
+# Capability Interface file for Navigation
+---
+# Name of the Interface
+name: Navigation
+spec_version: 1
+#
+#
+description: 'This Capability describes the minimal interface for interacting with a robot which has the ability to navigate its environment autonomously.'
+#
+#
+interface:
+  topics:
+    provides:
+      'obstacles':
+        type: 'nav_msgs/GridCells'
+      'inflated_obstacles':
+        description: 'Area around obstacles which the navigation system is trying to avoid'
+        type: 'nav_msgs/GridCells'
+    requires:
+      'goal':
+        type: 'geometry_msgs/PoseStamped'
+  services:
+    provides:
+      'get_map':
+        type: 'nav_msgs/GetMap'
+  parameters:
+    requires:
+      'map_delta':
+        type: 'int'
+        description: 'resolution of the map used in navigation'
+    provides:
+      'robot_model':
+        type: 'urdf'
+        description: 'urdf of the robot'
+  dynamic_parameters:
+    - 'max_speed'

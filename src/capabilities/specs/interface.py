@@ -98,12 +98,13 @@ You can use this interface like so::
 
 from __future__ import print_function
 
+import difflib
 import os
 import yaml
 
 
-class InvalidInterace(Exception):
-    """InvalidInterace exception"""
+class InvalidInterface(Exception):
+    """InvalidInterface exception"""
     def __init__(self, msg, file_name):
         self.file_name = file_name
         Exception.__init__(self, "In interface spec file '{0}': {1}".format(file_name, msg))
@@ -163,47 +164,59 @@ def capability_interface_from_dict(spec, file_name='<dict>'):
     :param file_name: str
     :returns: CapabilityInterface instance, populated with the provided spec
     :rtype: :py:class:`CapabilityInterface`
-    :raises: :py:exc:`InvalidInterace` if the spec is not complete or has invalid entries
+    :raises: :py:exc:`InvalidInterface` if the spec is not complete or has invalid entries
     """
     if 'name' not in spec:
-        raise InvalidInterace('No name specified', file_name)
+        raise InvalidInterface('No name specified', file_name)
     name = spec['name']
     if 'spec_version' not in spec:
-        raise InvalidInterace('No spec version specified', file_name)
+        raise InvalidInterface('No spec version specified', file_name)
     spec_version = int(spec['spec_version'])
+    if spec_version != 1:
+        raise InvalidInterface("Invalid spec version: '{0}'".format(spec_version), file_name)
     description = spec.get('description', 'No description given.')
     capability_interface = CapabilityInterface(name, spec_version, description)
     interface = spec.get('interface', {})
     for key in interface:
-        if key in ['topics', 'services', 'actions', 'parameters']:
+        valid_interface_keys = ['topics', 'services', 'actions', 'parameters', 'dynamic_parameters']
+        if key in valid_interface_keys[:-1]:
             element_groups = interface[key]
             if not isinstance(element_groups, dict):
-                raise InvalidInterace("Invalid {0} section, expected dict got: '{0}'".format(type(element_groups)),
-                                      file_name)
+                raise InvalidInterface("Invalid {0} section, expected dict got: '{0}'".format(type(element_groups)),
+                                       file_name)
             __process_interface_element(key[:-1], capability_interface, element_groups, file_name)
         elif key == 'dynamic_parameters':
             dynamic_parameters = interface[key]
             if not isinstance(dynamic_parameters, list):
-                raise InvalidInterace("Invalid dynamic_parameters entry, expect list got: '{0}'"
-                                      .format(type(dynamic_parameters)))
+                raise InvalidInterface("Invalid dynamic_parameters entry, expect list got: '{0}'"
+                                       .format(type(dynamic_parameters)), file_name)
             for dynamic_parameter in dynamic_parameters:
-                capability_interface.add_dynamic_parameter(dynamic_parameter)
+                try:
+                    capability_interface.add_dynamic_parameter(dynamic_parameter)
+                except (ValueError, RuntimeError) as e:
+                    raise InvalidInterface(str(e), file_name)
         else:
-            raise InvalidInterace("Invalid interface section: '{0}'".format(key), file_name)
+            matches = difflib.get_close_matches(key, valid_interface_keys)
+            msg = ""
+            if len(matches) > 1:
+                msg += ", did you mean: '{0}{1}'?".format("', '".join(matches[:-1]), "', or '" + matches[-1])
+            elif matches:
+                msg += ", did you mean: '{0}'?".format("', '".join(matches))
+            raise InvalidInterface("Invalid interface section: '{0}'".format(key) + msg, file_name)
     return capability_interface
 
 
 def __process_interface_element(element_type, capability_interface, element_groups, file_name):
     def __add_element_to_interface(name, element, group_name=None):
         if 'type' not in element:
-            raise InvalidInterace("{0} does not have a type: '{1}'".format(element_type.capitalize(), name), file_name)
+            raise InvalidInterface("{0} has no type: '{1}'".format(element_type.capitalize(), name), file_name)
         description = element.get('description', None)
         interface_element = InterfaceElement(name, element_type, element['type'], description)
         add = getattr(capability_interface, 'add_' + element_type)
         try:
             add(name, interface_element, group_name)
         except (ValueError, RuntimeError) as e:
-            raise InvalidInterace(str(e), file_name)
+            raise InvalidInterface(str(e), file_name)
 
     for group in element_groups:
         if group in ['requires', 'provides']:
@@ -363,7 +376,7 @@ class Interface(object):
 
     @property
     def parameters(self):
-        return list(self.__dynamic_parameters)
+        return dict([(name, actions[name]) for actions in self.__parameters.values() for name in actions])
 
     @property
     def required_parameters(self):

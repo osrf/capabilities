@@ -1,0 +1,8 @@
+%YAML 1.1
+---
+name: Minimal
+spec_version: 1
+interface:
+    dynamic_parameter:
+        - foo
+        - bar

@@ -1,4 +1,5 @@
 %YAML 1.1
 ---
 name: NoSpecVersion
+spec_type: interface
 interface: {}

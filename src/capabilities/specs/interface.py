@@ -169,6 +169,11 @@ def capability_interface_from_dict(spec, file_name='<dict>'):
     if 'name' not in spec:
         raise InvalidInterface('No name specified', file_name)
     name = spec['name']
+    if 'spec_type' not in spec:
+        raise InvalidInterface('No spec type specified', file_name)
+    if spec['spec_type'] != 'interface':
+        raise InvalidInterface("Invalid spec type, expected 'interface' got: '{0}'".format(spec['spec_type']),
+                               file_name)
     if 'spec_version' not in spec:
         raise InvalidInterface('No spec version specified', file_name)
     spec_version = int(spec['spec_version'])
@@ -444,10 +449,13 @@ class CapabilityInterface(Interface):
 
     A Capability Interface is defined by:
     - name (str): name of the interface
+    - spec_type (str): type of the interface specification (has to be 'interface')
     - spec_version (int): version of the interface specification
     - description (str): free form description of the interface
     - interface (:py:class:`Interface`): representation of components which make up the interface
     """
+    spec_type = 'interface'
+
     def __init__(self, name, spec_version, description=None):
         self.name = name
         self.spec_version = spec_version

@@ -2,4 +2,5 @@
 ---
 name: Version2Spec
 spec_version: 2
+spec_type: interface
 interface: {}

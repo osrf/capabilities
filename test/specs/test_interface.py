@@ -64,10 +64,8 @@ test_files_map = {
 
 def test_capability_interface_from_file_path():
     default_checker = lambda x: None
-    for test_file in test_files_map.keys():
-        checker = test_files_map[test_file][0] or default_checker
-        expected_exception = test_files_map[test_file][1]
-        expected_exception_regex = test_files_map[test_file][2]
+    for test_file, (checker, expected_exception, expected_exception_regex) in test_files_map.iteritems():
+        checker = checker or default_checker
         print('running test on file ' + test_file)
         test_file_path = os.path.join(test_data_dir, test_file)
         with assert_raises_regex(expected_exception, expected_exception_regex):

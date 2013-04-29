@@ -14,11 +14,12 @@ def check_interface(cp):
 
 
 def check_navigation(cp):
-    assert 'navigation_nav_stack' == cp.name, "Navigation != {0}".format(cp.name)
+    assert 'navigation_nav_stack' == cp.name, "navigation_nav_stack != {0}".format(cp.name)
     assert 'ability to navigate' in cp.description
     assert cp.implements == 'Navigation'
     assert cp.launch_file == 'launch/navigation_nav_stack.launch'
     assert cp.depends_on('LaserObservation')
+    str(cp.dependencies['LaserObservation'])
     assert 'scan' in cp.dependencies['LaserObservation'].remappings
     assert 'nav_stack/scan' == cp.dependencies['LaserObservation'].remappings['scan']
     assert 'hokuyo_base' == cp.dependencies['LaserObservation'].provider
@@ -40,8 +41,10 @@ test_files_map = {
     'invalid_depends_on_section.yaml': [None, provider.InvalidProvider, 'Invalid depends_on section'],
     'invalid_remapping_duplicate.yaml': [None, provider.InvalidProvider, 'is remapped twice, but to different values'],
     'invalid_remapping.yaml': [None, provider.InvalidProvider, 'Invalid remapping type'],
+    'invalid_spec_type.yaml': [None, provider.InvalidProvider, 'Invalid spec type'],
     'minimal.yaml': [check_minimal, None, None],
     'navigation_nav_stack.yaml': [check_navigation, None, None],
+    'no_implements.yaml': [None, provider.InvalidProvider, 'No implements specified'],
     'no_name.yaml': [None, provider.InvalidProvider, 'No name specified'],
     'no_spec_version.yaml': [None, provider.InvalidProvider, 'No spec version specified'],
     'no_spec_type.yaml': [None, provider.InvalidProvider, 'No spec type specified'],
@@ -49,15 +52,33 @@ test_files_map = {
 }
 
 
-def test_capability_interface_from_file_path():
+def test_capability_provider_from_file_path():
     default_checker = lambda x: None
     print()  # Keeps the output clean when doing nosetests -s
-    for test_file in test_files_map.keys():
-        checker = test_files_map[test_file][0] or default_checker
-        expected_exception = test_files_map[test_file][1]
-        expected_exception_regex = test_files_map[test_file][2]
+    for test_file, (checker, expected_exception, expected_exception_regex) in test_files_map.iteritems():
+        checker = checker or default_checker
         print('running test on file ' + test_file)
         test_file_path = os.path.join(test_data_dir, test_file)
         with assert_raises_regex(expected_exception, expected_exception_regex):
             cp = provider.capability_provider_from_file_path(test_file_path)
+            checker(cp)
+
+
+def test_capability_provider_from_file():
+    test_file = 'minimal.yaml'
+    checker, expected_exception, expected_exception_regex = test_files_map[test_file]
+    test_file_path = os.path.join(test_data_dir, test_file)
+    with open(test_file_path, 'r') as f:
+        with assert_raises_regex(expected_exception, expected_exception_regex):
+            cp = provider.capability_provider_from_file(f)
+            checker(cp)
+
+
+def test_capability_provider_from_string():
+    test_file = 'minimal.yaml'
+    checker, expected_exception, expected_exception_regex = test_files_map[test_file]
+    test_file_path = os.path.join(test_data_dir, test_file)
+    with open(test_file_path, 'r') as f:
+        with assert_raises_regex(expected_exception, expected_exception_regex):
+            cp = provider.capability_provider_from_string(f.read())
             checker(cp)

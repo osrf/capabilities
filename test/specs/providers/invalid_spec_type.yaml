@@ -1,6 +1,6 @@
 %YAML 1.1
 ---
-name: invalid_spec_type
+name: minimal
 spec_version: 1
 spec_type: provider_typo
-implements: InvalidSpecType
+implements: Minimal

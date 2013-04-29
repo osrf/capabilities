@@ -161,7 +161,7 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
     if spec_version != 1:
         raise InvalidProvider("Invalid spec version: '{0}'".format(spec_version), file_name)
     if 'implements' not in spec:
-        raise InvalidProvider("No implements specified")
+        raise InvalidProvider("No implements specified", file_name)
     implements = spec['implements']
     launch_file = spec.get('launch_file', None)
     description = spec.get('description', 'No description given.')

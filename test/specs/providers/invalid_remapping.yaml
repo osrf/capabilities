@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+name: invalid_remapping
+spec_version: 1
+spec_type: provider
+implements: Something
+depends_on:
+    SomethingElse:
+        remappings:
+            dynamic_parameter:
+                'foo': 'bar'

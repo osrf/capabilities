@@ -1,0 +1,6 @@
+%YAML 1.1
+---
+name: version_2_spec
+spec_version: 2
+spec_type: provider
+implements: Version2Spec

@@ -1,0 +1,14 @@
+%YAML 1.1
+---
+name: navigation_nav_stack
+spec_version: 1
+spec_type: provider
+description: 'Implements the ability to navigate.'
+implements: Navigation
+launch_file: 'launch/navigation_nav_stack.launch'
+depends_on:
+    LaserObservation:
+        remappings:
+            topics:
+                'scan': 'nav_stack/scan'
+        provider: 'hokuyo_base'

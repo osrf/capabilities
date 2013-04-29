@@ -1,0 +1,5 @@
+%YAML 1.1
+---
+name: no_spec_version
+spec_type: provider
+implements: NoSpecVersion

@@ -1,0 +1,13 @@
+%YAML 1.1
+---
+name: invalid_remapping_duplicate
+spec_version: 1
+spec_type: provider
+implements: Something
+depends_on:
+    SomethingElse:
+        remappings:
+            topics:
+                'foo': 'bar'
+            services:
+                'foo': 'baz'

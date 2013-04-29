@@ -16,7 +16,7 @@ def check_interface(ci):
 def check_navigation(ci):
     assert 'Navigation' == ci.name, "Navigation != {0}".format(ci.name)
     assert 'ability to navigate' in ci.description
-    assert sorted(['obstacles', 'inflated_obstacles', 'goal']) == sorted([t.name for t in ci.topics])
+    assert sorted(['obstacles', 'inflated_obstacles', 'goal']) == sorted(ci.topics)
     assert ['max_speed'] == ci.dynamic_parameters
     with assert_raises_regex(AttributeError, "can't set attribute"):
         ci.dynamic_parameters = ['max_speed2']

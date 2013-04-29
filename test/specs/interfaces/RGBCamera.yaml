@@ -5,11 +5,7 @@
 name: RGBCamera
 spec_version: 1
 spec_type: interface
-#
-#
 description: 'This Capability describes the interface exposed by a generic RGBCamera.'
-#
-#
 interface:
   # Topics
   topics:

@@ -61,7 +61,7 @@ You can use this API like this::
 
     >>> from pprint import pprint
     >>> from capabilities.specs.provider import capability_provider_from_file_path
-    >>> cp = capability_provider_from_file_path('test/specs/interfaces/RGBCamera.yaml')
+    >>> cp = capability_provider_from_file_path('test/specs/interfaces/navigation_nav_stack.yaml')
     >>> pprint(cp.dependencies)
     {'LaserObservation': <capabilities.specs.provider.DependsOnRelationship object at 0x1092c9150>}
     >>> print(cp.dependencies['LaserObservation'])
@@ -80,6 +80,8 @@ from __future__ import print_function
 
 import os
 import yaml
+
+from capabilities.specs.remappings import RemapCollection
 
 
 class InvalidProvider(Exception):
@@ -217,9 +219,7 @@ class CapabilityProvider(object):
 
     def add_depends_on(self, interface_name, remappings, preferred_provider=None):
         relationship = DependsOnRelationship(interface_name, preferred_provider)
-        for mapping_type in remappings:
-            for src, dst in remappings[mapping_type].iteritems():
-                relationship.add_remapping(mapping_type, src, dst)
+        relationship.add_remappings_by_dict(remappings)
         # The dict strucutre of YAML should prevent duplicate interface_name keys
         self.__depends_on[interface_name] = relationship
 
@@ -239,37 +239,17 @@ class DependsOnRelationship(object):
         self.capability_name = capability_name
         self.provider = preferred_provider
         self.preferred_provider = preferred_provider
-        self.__remapped_topics = {}
-        self.__remapped_services = {}
-        self.__remapped_actions = {}
-        self.__remapped_parameters = {}
-        self.__type_mapping = {
-            'topics': self.__remapped_topics,
-            'services': self.__remapped_services,
-            'actions': self.__remapped_actions,
-            'parameters': self.__remapped_parameters
-        }
+        self.__remap_collection = RemapCollection()
 
     def __str__(self):
-        remapping_strs = ["'{0}' -> '{1}'".format(f, t) for f, t in self.remappings.iteritems()]
-        msg = "{0}:\nremappings:\n{1}".format(self.name, "\n".join(['  ' + s for s in remapping_strs]))
+        msg = "{0}:\n{1}".format(self.name, str(self.__remap_collection))
         if self.provider:
             msg += "\npreferred provider: {0}".format(self.provider)
         return msg
 
     @property
     def remappings(self):
-        return dict([(k, v) for remaps in self.__type_mapping.values() for k, v in remaps.iteritems()])
+        return self.__remap_collection.remappings
 
-    def add_remapping(self, mapping_type, map_from, map_to):
-        # Assert that the mapping_type is valid
-        if mapping_type not in self.valid_remapping_types:
-            raise ValueError("Invalid remapping type '{0}', should be one of: '{1}'"
-                             .format(mapping_type, "', '".join(self.valid_remapping_types)))
-        # Assert that if the map_from is already in the flat remapping list then the map_to's match
-        if map_from in self.remappings:
-            assert (self.remappings[map_from] == map_to), (
-                "'{0}' is remapped twice, but to different values '{1}' and '{2}'"
-                .format(map_from, self.remappings[map_from], map_to))
-        else:
-            self.__type_mapping[mapping_type][map_from] = map_to
+    def add_remappings_by_dict(self, remappings_dict):
+        self.__remap_collection.add_remappings_by_dict(remappings_dict)

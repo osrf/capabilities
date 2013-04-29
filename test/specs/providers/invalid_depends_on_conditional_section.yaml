@@ -5,5 +5,5 @@ spec_version: 1
 spec_type: provider
 implements: Something
 depends_on:
-    SomethingElse:
+    'SomethingElse':
         - foo

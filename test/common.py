@@ -1,4 +1,9 @@
+import copy
+import os
 import re
+import sys
+
+from StringIO import StringIO
 
 
 def assert_raises(exception_classes, callable_obj=None, *args, **kwargs):
@@ -46,3 +51,32 @@ class AssertRaisesContext(object):
         if not expected_regex.search(str(exc_value)):
             raise AssertionError("'{0}' does not match '{1}'".format(expected_regex.pattern, str(exc_value)))
         return True
+
+
+class redirected_stdio(object):
+    def __init__(self, combined_io=False):
+        self.combined_io = combined_io
+
+    def __enter__(self):
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
+        sys.stdout = out = StringIO()
+        sys.stderr = err = out if self.combined_io else StringIO()
+        return out, err
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.stdout = self.original_stdout
+        sys.stderr = self.original_stderr
+
+
+class evironment(object):
+    def __init__(self, seed_environment={}):
+        self.seed_environment = seed_environment
+
+    def __enter__(self):
+        self.original_environ = copy.deepcopy(os.environ)
+        os.environ = self.seed_environment
+        return os.environ
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.environ = self.original_environ

@@ -1,0 +1,29 @@
+from __future__ import print_function
+
+from .common import assert_raises, assert_raises_regex, redirected_stdio, evironment
+
+from capabilities import server
+
+
+def test_create_parser():
+    print()
+    parser = server.create_parser()
+    args = parser.parse_args([])
+    assert args.package_path is None
+    package_path = '/path/1:/path/2'
+    args = parser.parse_args([package_path])
+    assert args.package_path == package_path
+    path1 = '/path/1'
+    path2 = '/path/2'
+    with assert_raises(SystemExit):
+        with redirected_stdio(combined_io=True) as (out, err):  # Capture stderr from argparse
+            args = parser.parse_args([path1, path2])
+    print(out.getvalue())
+
+
+def test_main():
+    with evironment({'ROS_PACKAGE_PATH': '/path1'}):
+        server.main([])
+    with evironment({}):
+        with assert_raises_regex(SystemExit, 'No package paths specified'):
+            server.main([])

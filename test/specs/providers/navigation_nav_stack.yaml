@@ -7,7 +7,7 @@ description: 'Implements the ability to navigate.'
 implements: Navigation
 launch_file: 'launch/navigation_nav_stack.launch'
 depends_on:
-    LaserObservation:
+    'LaserObservation':
         remappings:
             topics:
                 'scan': 'nav_stack/scan'

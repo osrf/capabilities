@@ -74,21 +74,21 @@ class CapabilityServer(object):
         capabilities = _build_file_index(pkgs)
         for i in list_interface_files(capabilities):
             interface = capability_interface_from_file_path(i)
-            if not self.check_name(interface.name, 'interface'):
+            if not self._check_name(interface.name, 'interface'):
                 continue
             self._interfaces[interface.name] = interface
         for i in list_provider_files(capabilities):
             provider = capability_provider_from_file_path(i)
-            if not self.check_name(provider.name, 'provider'):
+            if not self._check_name(provider.name, 'provider'):
                 continue
             self._providers[provider.name] = provider
         for i in list_semantic_interface_files(capabilities):
             semantic_interface = semantic_capability_interface_from_file_path(i)
-            if not self.check_name(semantic_interface.name, 'semantic_interface'):
+            if not self._check_name(semantic_interface.name, 'semantic_interface'):
                 continue
             self._semantic_interfaces[semantic_interface.name] = semantic_interface
 
-    def check_name(self, name, type_name):
+    def _check_name(self, name, type_name):
         error = False
         if name in self._interfaces:
             print("%s %s already declared" % \
@@ -122,8 +122,14 @@ class CapabilityServer(object):
         """
         raise NotImplemented
 
+    def get_interfaces(self):
+        return self._interfaces
 
-
+    def get_providers(self, interface_name):
+        return [p for p in self._providers.values() if p.implements == interface_name]
+    
+    def get_semantic_interfaces(self, interface_name):
+        return [p for p in self._semantic_interfaces.values() if p.redefines == interface_name]
 
 """
 Advertized services
@@ -167,3 +173,10 @@ def main(sysargv=None):
 
     print("Capability server created.\ninterfaces: %s\nproviders%s\nsemantic_interfaces:%s" % 
           (cs._interfaces, cs._providers, cs._semantic_interfaces))
+
+    print("interfaces are", cs.get_interfaces)
+
+    print("providers of interface Minimal are", cs.get_providers('Minimal'))
+
+    print("semantic_interfaces of interface Minimal are",
+          cs.get_semantic_interfaces('Minimal'))

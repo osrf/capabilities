@@ -11,7 +11,7 @@ def _build_package_dict(ros_package_path=_get_ros_package_paths()):
     result = {}
     for path in ros_package_path:
         for pkg_name, pkg in find_packages(path).items():
-            result[pkg_name] = pkg
+            result[os.path.abspath(os.path.join(path, pkg_name))] = pkg
     return result
 
 
@@ -51,10 +51,12 @@ def list_interfaces(file_index=_build_file_index()):
     return interfaces
 
 
-
 def list_interface_files(file_index=_build_file_index()):
     interfaces = file_index['interfaces']
-    return [i['file'] for i in interfaces]
+    result = []
+    for p, v in interfaces.items():
+        result.extend([os.path.join(p, payload['file'])  for payload in v])
+    return result
 
 
 def list_providers(file_index=_build_file_index()):
@@ -62,10 +64,12 @@ def list_providers(file_index=_build_file_index()):
     return providers
 
 
-
-def list_interface_files(file_index=_build_file_index()):
+def list_provider_files(file_index=_build_file_index()):
     providers = file_index['providers']
-    return [i['file'] for i in providers]
+    result = []
+    for p, v in providers.items():
+        result.extend([os.path.join(p, payload['file'])  for payload in v])
+    return result
 
 
 
@@ -76,4 +80,7 @@ def list_semantic_interfaces(file_index=_build_file_index()):
 
 def list_semantic_interface_files(file_index=_build_file_index()):
     semantic_interfaces = file_index['semantic_interfaces']
-    return [i['file'] for i in semantic_interfaces]
+    result = []
+    for p, v in semantic_interfaces.items():
+        result.extend([os.path.join(p, payload['file'])  for payload in v])
+    return result

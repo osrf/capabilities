@@ -36,7 +36,8 @@
 """
 This module implements the Capability server.
 
-The Capability server provides access to queries and services related to capabilities.
+The Capability server provides access to queries and services related
+to capabilities.
 """
 
 from __future__ import print_function
@@ -44,6 +45,104 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+
+from discovery import _build_package_dict, _build_file_index,\
+    list_interface_files, list_provider_files, list_semantic_interface_files
+
+from capabilities.specs.interface import capability_interface_from_file_path
+from capabilities.specs.provider import capability_provider_from_file_path
+from capabilities.specs.semantic_interface\
+    import semantic_capability_interface_from_file_path
+
+
+class CapabilityServer(object):
+    def __init__(self, ros_package_path=None):
+        self._interfaces = {}
+        self._providers = {}
+        self._semantic_interfaces = {}
+
+        self.load_from_ros_package_path(ros_package_path)
+        # TODO verify
+        # TODO setup service
+
+    def load_from_ros_package_path(self, ros_package_path=None):
+        """
+        Run discovery, possible to reexecute
+        assert there are no duplicate names
+        """
+        pkgs = _build_package_dict(ros_package_path)
+        capabilities = _build_file_index(pkgs)
+        for i in list_interface_files(capabilities):
+            interface = capability_interface_from_file_path(i)
+            if not self.check_name(interface.name, 'interface'):
+                continue
+            self._interfaces[interface.name] = interface
+        for i in list_provider_files(capabilities):
+            provider = capability_provider_from_file_path(i)
+            if not self.check_name(provider.name, 'provider'):
+                continue
+            self._providers[provider.name] = provider
+        for i in list_semantic_interface_files(capabilities):
+            semantic_interface = semantic_capability_interface_from_file_path(i)
+            if not self.check_name(semantic_interface.name, 'semantic_interface'):
+                continue
+            self._semantic_interfaces[semantic_interface.name] = semantic_interface
+
+    def check_name(self, name, type_name):
+        error = False
+        if name in self._interfaces:
+            print("%s %s already declared" % \
+                      (type_name, name))
+            error = True
+        elif name in self._providers:
+            print("%s %s collides with a provider name" % \
+                      (type_name, name))
+            error = True
+        elif name in self._semantic_interfaces:
+            print("%s %s collides with a semantic_interface name" % \
+                      (type_name, name))
+            error = True
+        return error == False
+
+    def verify_tree(self):
+        """" Check the tree for issues
+        typos, no name, cross reference errors.
+        """
+        raise NotImplemented
+
+    def view_capabilities_as_dot(self, with_errors=False):
+        """
+        View the system, optionally with errors.
+        """
+        raise NotImplemented
+
+    def advertize_services(self):
+        """
+        advertize the public API
+        """
+        raise NotImplemented
+
+
+
+
+"""
+Advertized services
+
+reload_capabilites
+
+get_interfaces
+
+get_providers(interface)
+
+get_semantic_interfaces(interface)
+
+
+launching
+---------
+
+run_capability(interface, (preferred provider) )
+
+"""
 
 
 def create_parser():
@@ -63,3 +162,8 @@ def main(sysargv=None):
         sys.exit('No package paths specified, set ROS_PACKAGE_PATH or pass them as an argument')
 
     # TODO: find capabilities, and start service interface
+    cs = CapabilityServer(ros_package_path)
+
+
+    print("Capability server created.\ninterfaces: %s\nproviders%s\nsemantic_interfaces:%s" % 
+          (cs._interfaces, cs._providers, cs._semantic_interfaces))

@@ -37,8 +37,6 @@
 This module implements discovery of packages which export various spec files.
 """
 
-from __future__ import print_function
-
 import os
 
 from catkin_pkg.packages import find_packages
@@ -121,7 +119,8 @@ def list_interface_files(file_index=None):
     interfaces = file_index['interfaces']
     result = []
     for p, v in interfaces.items():
-        result.extend([os.path.join(p, payload['file']) for payload in v])
+        new_interfaces = [os.path.join(p, payload['file']) for payload in v]
+        result.extend(new_interfaces)
     return result
 
 

@@ -23,6 +23,14 @@ def check_navigation(ci):
     assert {} == ci.actions
     assert 'get_map' in ci.services.keys()
     assert 'nav_msgs/GetMap' == ci.services['get_map'].type
+    ci.provided_topics
+    ci.required_topics
+    ci.provided_services
+    ci.required_services
+    ci.provided_actions
+    ci.required_actions
+    ci.provided_parameters
+    ci.required_parameters
     check_interface(ci)
 
 
@@ -48,7 +56,8 @@ test_files_map = {
     'DuplicateTopic.yaml': [None, interface.InvalidInterface, 'Interface has topic listed twice'],
     'InvalidDynamicParameter.yaml': [None, interface.InvalidInterface, 'Invalid dynamic_parameters entry'],
     'InvalidInterfaceSection.yaml': [None, interface.InvalidInterface, 'Invalid interface section'],
-    'InvalidInterfaceSectionName.yaml': [None, interface.InvalidInterface, "did you mean: 'dynamic_parameters',"],
+    'InvalidInterfaceSectionName.yaml': [None, interface.InvalidInterface, "did you mean: 'parameters', or"],
+    'InvalidInterfaceSectionName2.yaml': [None, interface.InvalidInterface, "did you mean: 'actions'?"],
     'InvalidInterfaceSectionType.yaml': [None, interface.InvalidInterface, 'section, expected dict got:'],
     'InvalidSpecType.yaml': [None, interface.InvalidInterface, "expected 'interface' got:"],
     'Minimal.yaml': [check_minimal, None, None],
@@ -71,3 +80,48 @@ def test_capability_interface_from_file_path():
         with assert_raises_regex(expected_exception, expected_exception_regex):
             ci = interface.capability_interface_from_file_path(test_file_path)
             checker(ci)
+
+
+def test_capability_interface_from_file():
+    test_file = 'Minimal.yaml'
+    checker, expected_exception, expected_exception_regex = test_files_map[test_file]
+    test_file_path = os.path.join(test_data_dir, test_file)
+    with open(test_file_path, 'r') as f:
+        with assert_raises_regex(expected_exception, expected_exception_regex):
+            cp = interface.capability_interface_from_file(f)
+            checker(cp)
+
+
+def test_capability_interface_from_string():
+    test_file = 'Minimal.yaml'
+    checker, expected_exception, expected_exception_regex = test_files_map[test_file]
+    test_file_path = os.path.join(test_data_dir, test_file)
+    with open(test_file_path, 'r') as f:
+        with assert_raises_regex(expected_exception, expected_exception_regex):
+            cp = interface.capability_interface_from_string(f.read())
+            checker(cp)
+
+
+def test_Interface__check_element():
+    i = interface.Interface()
+    with assert_raises_regex(TypeError, 'Invalid element'):
+        i._Interface__check_element(None)
+
+
+def test_Interface__check_name():
+    i = interface.Interface()
+    with assert_raises_regex(TypeError, 'Invalid element name'):
+        i._Interface__check_name(None)
+
+
+def test_Interface__add_element():
+    i = interface.Interface()
+    with assert_raises_regex(ValueError, 'Invalid element kind'):
+        i._Interface__add_element('bad_kind', None, None, None)
+    with assert_raises_regex(ValueError, 'Invalid grouping'):
+        i._Interface__add_element('topic', 'foo', interface.InterfaceElement('foo', 'topic'), 'invalid_group')
+
+
+def test_InterfaceElement():
+    with assert_raises_regex(ValueError, 'Invalid element kind'):
+        interface.InterfaceElement('foo', 'invalid_type')

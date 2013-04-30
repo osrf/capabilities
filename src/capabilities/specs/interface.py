@@ -203,7 +203,7 @@ def capability_interface_from_dict(spec, file_name='<dict>'):
             if len(matches) > 1:
                 msg += ", did you mean: '{0}{1}'?".format("', '".join(matches[:-1]), "', or '" + matches[-1])
             elif matches:
-                msg += ", did you mean: '{0}'?".format("', '".join(matches))
+                msg += ", did you mean: '{0}'?".format(matches[0])
             raise InvalidInterface("Invalid interface section: '{0}'".format(key) + msg, file_name)
     return capability_interface
 

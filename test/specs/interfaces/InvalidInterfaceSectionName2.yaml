@@ -4,6 +4,6 @@ name: Minimal
 spec_version: 1
 spec_type: interface
 interface:
-    parameter:
+    action:
         - foo
         - bar

@@ -45,6 +45,10 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+import rospy
+
+from std_srvs.srv import Empty, EmptyResponse
+#from capabilities.srv import GetInterfaces,G
 
 from discovery import _build_package_dict, _build_file_index,\
     list_interface_files, list_provider_files, list_semantic_interface_files
@@ -55,21 +59,34 @@ from capabilities.specs.semantic_interface\
     import semantic_capability_interface_from_file_path
 
 
-class CapabilityServer(object):
+class CapabilityIndex(object):
     def __init__(self, ros_package_path=None):
-        self._interfaces = {}
-        self._providers = {}
-        self._semantic_interfaces = {}
-
+        self._ros_package_path = ros_package_path
+        self._initialize_capabilities()
         self.load_from_ros_package_path(ros_package_path)
         # TODO verify
         # TODO setup service
+
+    def _initialize_capabilities(self):
+        self._interfaces = {}
+        self._providers = {}
+        self._semantic_interfaces = {}
 
     def load_from_ros_package_path(self, ros_package_path=None):
         """
         Run discovery, possible to reexecute
         assert there are no duplicate names
         """
+        # if argument not set use the last explicit argument(None is valid)
+        if not ros_package_path:
+            ros_package_path = self._ros_package_path
+        else:
+            # override the saved ros_package_path
+            self._ros_package_path = ros_package_path
+
+        # clear all previously loaded packages if in a reload
+        self._initialize_capabilities()
+
         pkgs = _build_package_dict(ros_package_path)
         capabilities = _build_file_index(pkgs)
         for i in list_interface_files(capabilities):
@@ -104,6 +121,14 @@ class CapabilityServer(object):
             error = True
         return error == False
 
+    def all_capabilities_as_string(self):
+        return """Capability server created.
+interfaces: %s
+providers%s
+semantic_interfaces:%s""" % \
+            (self._interfaces, self._providers, self._semantic_interfaces)        
+
+
     def verify_tree(self):
         """" Check the tree for issues
         typos, no name, cross reference errors.
@@ -123,13 +148,35 @@ class CapabilityServer(object):
         raise NotImplemented
 
     def get_interfaces(self):
-        return self._interfaces
+        return [i for i in self._interfaces.values()]
 
     def get_providers(self, interface_name):
         return [p for p in self._providers.values() if p.implements == interface_name]
-    
+
     def get_semantic_interfaces(self, interface_name):
         return [p for p in self._semantic_interfaces.values() if p.redefines == interface_name]
+
+
+class CapabilityServer(object):
+    """
+    A class to expose the CapabilityIndex over a ROS API
+
+    """
+
+    def __init__(self, capability_index):
+        self._ci = capability_index
+
+        reload_service = rospy.Service('reload_capabilities',
+                                       Empty,
+                                       self.handle_reload_request)
+
+    def handle_reload_request(self, req):
+        print("Reloading capabilities")
+        self._ci.load_from_ros_package_path()
+        return EmptyResponse()
+
+#    def handle_get_interfaces(self, req):
+#        interfaces = self._ci.get_interfaces()
 
 """
 Advertized services
@@ -168,15 +215,24 @@ def main(sysargv=None):
         sys.exit('No package paths specified, set ROS_PACKAGE_PATH or pass them as an argument')
 
     # TODO: find capabilities, and start service interface
-    cs = CapabilityServer(ros_package_path)
+    ci = CapabilityIndex(ros_package_path)
 
 
-    print("Capability server created.\ninterfaces: %s\nproviders%s\nsemantic_interfaces:%s" % 
-          (cs._interfaces, cs._providers, cs._semantic_interfaces))
+    rospy.init_node('capability_server')
 
-    print("interfaces are", cs.get_interfaces)
+    cs = CapabilityServer(ci)
 
-    print("providers of interface Minimal are", cs.get_providers('Minimal'))
+
+
+    # simple tripwire tests
+    print(ci.all_capabilities_as_string())
+
+    print("interfaces are", ci.get_interfaces())
+
+    print("providers of interface Minimal are", ci.get_providers('Minimal'))
 
     print("semantic_interfaces of interface Minimal are",
-          cs.get_semantic_interfaces('Minimal'))
+          ci.get_semantic_interfaces('Minimal'))
+
+
+    rospy.spin()

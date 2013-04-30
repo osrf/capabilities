@@ -48,6 +48,7 @@
     <!-- <metapackage/> -->
 
     <!-- Other tools can request additional information be placed here -->
+    <capability_interface>interface.yaml</capability_interface>
 
   </export>
 </package>

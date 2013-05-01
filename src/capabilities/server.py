@@ -48,7 +48,9 @@ import sys
 import rospy
 
 from std_srvs.srv import Empty, EmptyResponse
-#from capabilities.srv import GetInterfaces,G
+from capabilities.srv import GetInterfaces, GetInterfacesResponse,\
+    GetProviders, GetProvidersResponse, GetSemanticInterfaces, \
+    GetSemanticInterfacesResponse
 
 from discovery import _build_package_dict, _build_file_index,\
     list_interface_files, list_provider_files, list_semantic_interface_files
@@ -170,13 +172,36 @@ class CapabilityServer(object):
                                        Empty,
                                        self.handle_reload_request)
 
+
+        self._reload_service = rospy.Service('get_interfaces',
+                                             GetInterfaces,
+                                             self.handle_get_interfaces)
+
+        self._providers_service = rospy.Service('get_providers',
+                                                GetProviders,
+                                                self.handle_get_providers)
+
+        self._semantic_interface_service = rospy.Service('get_semantic_interfaces',
+                                                         GetSemanticInterfaces,
+                                                         self.handle_get_semantic_interfaces)
+
+
     def handle_reload_request(self, req):
         print("Reloading capabilities")
         self._ci.load_from_ros_package_path()
         return EmptyResponse()
 
-#    def handle_get_interfaces(self, req):
-#        interfaces = self._ci.get_interfaces()
+    def handle_get_interfaces(self, req):
+        interfaces = self._ci.get_interfaces()
+        return GetInterfacesResponse([i.name for i in interfaces])
+
+    def handle_get_providers(self, req):
+        providers = self._ci.get_providers(req.interface)
+        return GetProvidersResponse([i.name for i in providers])
+
+    def handle_get_semantic_interfaces(self, req):
+        semantic_interfaces = self._ci.get_semantic_interfaces(req.interface)
+        return GetSemanticInterfacesResponse([i.name for i in semantic_interfaces])
 
 """
 Advertized services

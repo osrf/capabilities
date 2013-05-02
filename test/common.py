@@ -69,7 +69,7 @@ class redirected_stdio(object):
         sys.stderr = self.original_stderr
 
 
-class evironment(object):
+class environment(object):
     def __init__(self, seed_environment={}):
         self.seed_environment = seed_environment
 

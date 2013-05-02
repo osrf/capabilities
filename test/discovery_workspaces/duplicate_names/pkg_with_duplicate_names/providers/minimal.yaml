@@ -4,3 +4,4 @@ name: minimal
 spec_version: 1
 spec_type: provider
 implements: Minimal
+launch_file: 'launch/minimal.launch'

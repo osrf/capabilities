@@ -32,139 +32,387 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # Author: Tully Foote <tfoote@osrfoundation.org>
+# Author: William Woodall <william@osrfoundation.org>
 
 """
 This module implements discovery of packages which export various spec files.
+
+You can use this API as follows, assuming workspace of
+'test/discovery_workspaces/minimal'::
+
+    >>> from pprint import pprint
+    >>> from capabilities.discovery import package_index_from_package_path
+    >>> from capabilities.discovery import spec_file_index_from_packages_dict
+    >>> from capabilities.discovery import spec_index_from_spec_file_index
+    >>> workspaces = ['test/discovery_workspaces/minimal']
+    >>> package_index = package_index_from_package_path(workspaces)
+    >>> spec_file_index = spec_file_index_from_packages_dict(package_index)
+    >>> pprint(spec_file_index)
+    {'minimal': {'capability_interface': ['test/discovery_workspaces/minimal/minimal/interfaces/Minimal.yaml'],
+                 'capability_provider': ['test/discovery_workspaces/minimal/minimal/providers/minimal.yaml',
+                                         'test/discovery_workspaces/minimal/minimal/providers/specific_minimal.yaml'],
+                 'package': <catkin_pkg.package.Package object at 0x10c13e3e8>,
+                 'semantic_capability_interface': ['test/discovery_workspaces/minimal/minimal/interfaces/SpecificMinimal.yaml']}}
+
+    >>> spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    >>> print(errors)
+    []
+    >>> spec_index.names
+    ['Minimal', 'specific_minimal', 'minimal', 'SpecificMinimal']
+    >>> pprint(spec_index.specs)
+    {'Minimal': <capabilities.specs.interface.CapabilityInterface object at 0x10b7e3410>,
+     'SpecificMinimal': <capabilities.specs.semantic_interface.SemanticCapabilityInterface object at 0x10b7bf3d0>,
+     'minimal': <capabilities.specs.provider.CapabilityProvider object at 0x10b7bf750>,
+     'specific_minimal': <capabilities.specs.provider.CapabilityProvider object at 0x10b7bfd10>}
+    >>> spec_index.interface_names
+    ['Minimal']
+    >>> spec_index.interfaces
+    {'Minimal': <capabilities.specs.interface.CapabilityInterface object at 0x10b7e3410>}
+    >>> spec_index.interfaces['Minimal']
+    <capabilities.specs.interface.CapabilityInterface object at 0x10b7e3410>
+    >>> spec_index.semantic_interfaces
+    {'SpecificMinimal': <capabilities.specs.semantic_interface.SemanticCapabilityInterface object at 0x10b7bf3d0>}
+    >>> pprint(spec_index.providers)
+    {'minimal': <capabilities.specs.provider.CapabilityProvider object at 0x10b7bf750>,
+     'specific_minimal': <capabilities.specs.provider.CapabilityProvider object at 0x10b7bfd10>}
+
 """
 
 import os
 
 from catkin_pkg.packages import find_packages
 
+from capabilities.specs.interface import capability_interface_from_file_path
+from capabilities.specs.interface import InvalidInterface
 
-def _get_ros_package_paths():
-    """ Load the ROS_PACKAGE_PATH from the environment """
+from capabilities.specs.provider import capability_provider_from_file_path
+from capabilities.specs.provider import InvalidProvider
+
+from capabilities.specs.semantic_interface import semantic_capability_interface_from_file_path
+from capabilities.specs.semantic_interface import InvalidSemanticInterface
+
+
+class DuplicateNameException(Exception):
+    def __init__(self, name, colliding_package, existing_package, spec_type):
+        self.spec_name = name
+        self.package = colliding_package
+        self.spec_type = spec_type
+        if colliding_package == existing_package:
+            msg = "Spec named '{0}' is defined twice in the '{1}' package."
+            msg = msg.format(name, colliding_package)
+        else:
+            msg = "Spec named '{0}' in the '{1}' package is also defined in the '{2}' package."
+            msg = msg.format(name, colliding_package, existing_package)
+        Exception.__init__(self, msg)
+
+
+class InterfaceNameNotFoundException(Exception):
+    def __init__(self, msg, spec_name, spec_type, spec_package):
+        self.spec_name = spec_name
+        self.package = spec_package
+        self.spec_type = spec_type
+        Exception.__init__(self, msg)
+
+
+def get_ros_package_paths():
+    """Load the ``ROS_PACKAGE_PATH`` from the environment.
+
+    :returns: list of paths from the ``ROS_PACKAGE_PATH``
+    :rtype: list
+    """
     return os.getenv('ROS_PACKAGE_PATH', '').split(':')
 
 
-def _build_package_dict(ros_package_path=None):
+def package_index_from_package_path(package_paths):
+    """Find all packages on the given list of paths
+
+    Iterates over the given list of paths in reverse order so that packages
+    found in the paths at the beginning of the list get overlaid onto packages
+    with the same name which were found in paths farther back in the list.
+
+    The resulting dictionary is keyed by the package name (so packages with
+    duplicate names are overlaid) and the values are the
+    :py:class:`catkin_pkg.package.Package` class
+
+    :param ros_package_path: list of paths to search
+    :type ros_package_path: list
+    :returns: dictionary of package objects keyed by name of the package
+    :rtype: dict
     """
-    Find all packages on the ROS_PACKAGE_PATH.
-    @return a dict {full_path_to_package: pkg object}
-    """
-    ros_package_path = _get_ros_package_paths() if\
-        ros_package_path is None else ros_package_path
     result = {}
-    for path in ros_package_path:
-        for pkg_name, pkg in find_packages(path).items():
-            result[os.path.abspath(os.path.join(path, pkg_name))] = pkg
+    for path in reversed(package_paths):
+        for package_path, package in find_packages(path).items():
+            result[package.name] = package
     return result
 
 
-def _build_file_index(pkgs=None):
-    """
-    Build a full index of capabiliites.  Returns a dict with three
-    elements, 'interfaces', 'providers', and 'semantic_interfaces'
+def spec_file_index_from_packages_dict(package_index):
+    """Creates an index of spec files by package.
 
-    Each element of the above dict will have:
-    {full_path_to_package: [{'file': relative_filename,
-                             'package': catkin_pkg pkg object}]
-    """
-    pkgs = _build_package_dict() if pkgs is None else pkgs
-    interfaces = {}
-    providers = {}
-    semantic_interfaces = {}
-    for pkg_name, pkg in pkgs.items():
-        for e in pkg.exports:
-            t = e.tagname
-            c = e.content
-            payload = {'file': c,
-                       'package': pkg}
-            if t == 'capability_interface':
-                if pkg_name in interfaces:
-                    interfaces[pkg_name].append(payload)
-                else:
-                    interfaces[pkg_name] = [payload]
-            elif t == 'capability_provider':
-                if pkg_name in providers:
-                    providers[pkg_name].append(payload)
-                else:
-                    providers[pkg_name] = [payload]
-            elif t == 'capability_semantic_interface':
-                if pkg_name in semantic_interfaces:
-                    semantic_interfaces[pkg_name].append(payload)
-                else:
-                    semantic_interfaces[pkg_name] = [payload]
-    return {'interfaces': interfaces,
-            'providers': providers,
-            'semantic_interfaces': semantic_interfaces}
+    Takes a dict of package objects keyed by package name.
 
+    Returns a dict structured like this::
 
-def list_interfaces(file_index=None):
+        {
+            '<package_name>': {
+                'package': package_obj,
+                'capability_interface': [path to spec file, ...],
+                'capability_provider': [path to spec file, ...],
+                'semantic_capability_interface': [path to spec file, ...]
+            },
+            ...
+        }
+
+    This dict contains a dict for each package, keyed by package name.
+    Those dicts contain the parsed package object, and a list of relative paths
+    for spec files, separated by spec type.
+
+    :param package_index: dict of :py:class:`catkin_pkg.package.Package`'s
+        keyed by package name to be processed
+    :type package_index: dict
+    :returns: spec file index strucutre
+    :rtype: dict
     """
-    Each element of the returned dict will have:
-    {full_path_to_package: [{'file': relative_filename,
-                             'package': catkin_pkg pkg object}]
-    """
-    file_index = _build_file_index() if file_index is None else file_index
-    interfaces = file_index['interfaces']
-    return interfaces
+    spec_file_index = {}
+    for package_name, package in package_index.items():
+        spec_file_index[package_name] = {
+            'package': package,
+            'capability_interface': [],
+            'capability_provider': [],
+            'semantic_capability_interface': []
+        }
+        package_path = os.path.dirname(package.filename)
+        for export in package.exports:
+            tag = export.tagname
+            if tag != 'package' and tag in spec_file_index[package_name]:
+                spec_file_path = os.path.join(package_path, export.content)
+                spec_file_index[package_name][tag].append(spec_file_path)
+    return spec_file_index
 
 
-def list_interface_files(file_index=None):
+def spec_index_from_spec_file_index(spec_file_index):
+    """Builds a :py:class:`SpecIndex` from a spec file index
+
+    Goes through each spec path in each package of the given spec file index
+    and parses them into objects. The objects are stored in a
+    :py:class:`SpecIndex` before being returned.
+
+    Duplicate Names are not allowed, even between different spec types
+    and packages. Any duplicate names will be raised as a
+    :py:exc:`DuplicateNameException`.
+
+    Any other errors encountered during spec file processing will be returned
+    as a list along with the :py:class:`SpecIndex`.
+
+    :param spec_file_index: spec_file_index, see
+        :py:func:`spec_file_index_from_packages_dict`
+    :type spec_file_index: dict
+    :returns: SpecIndex which contains all the loaded specs
+        and a list of any errors encountered while loading the spec files
+    :rtype: :py:class:`SpecIndex`, :py:obj:`list`
+    :raises DuplicateNameException: when two interfaces have the same name
     """
-    returns a list of all interface filenames
-    """
-    file_index = _build_file_index() if file_index is None else file_index
-    interfaces = file_index['interfaces']
-    result = []
-    for p, v in interfaces.items():
-        new_interfaces = [os.path.join(p, payload['file']) for payload in v]
-        result.extend(new_interfaces)
-    return result
+    spec_index = SpecIndex()
+    errors = []
+    # First load and process CapabilityInterface's
+    for package_name, package_dict in spec_file_index.items():
+        interface_paths = package_dict['capability_interface']
+        for path in interface_paths:
+            try:
+                interface = capability_interface_from_file_path(path)
+                spec_index.add_interface(interface, path, package_name)
+            except InvalidInterface as e:
+                errors.append(e)
+    # Then load the SemanticCapabilityInterface's
+    for package_name, package_dict in spec_file_index.items():
+        semantic_interface_paths = package_dict['semantic_capability_interface']
+        for path in semantic_interface_paths:
+            try:
+                si = semantic_capability_interface_from_file_path(path)
+                spec_index.add_semantic_interface(si, path, package_name)
+            except InvalidSemanticInterface as e:
+                errors.append(e)
+    # Finally load the CapabilityProvider's
+    for package_name, package_dict in spec_file_index.items():
+        capability_provider_paths = package_dict['capability_provider']
+        for path in capability_provider_paths:
+            try:
+                provider = capability_provider_from_file_path(path)
+                spec_index.add_provider(provider, path, package_name)
+            except InvalidProvider as e:
+                errors.append(e)
+    return spec_index, errors
 
 
-def list_providers(file_index=None):
+class SpecIndex(object):
+    """Container for capability spec file locations and respective spec classes
     """
-    Each element of the returned dict will have:
-    {full_path_to_package: [{'file': relative_filename,
-                             'package': catkin_pkg pkg object}]
-    """
-    file_index = _build_file_index() if file_index is None else file_index
-    providers = file_index['providers']
-    return providers
+    def __init__(self):
+        self.__packages = []
+        self.__interfaces = {}
+        self.__providers = {}
+        self.__semantic_interfaces = {}
 
+    def __add_package(self, package_name):
+        if package_name in self.__packages:
+            return
+        self.__packages.append(package_name)
+        self.__interfaces[package_name] = {}
+        self.__providers[package_name] = {}
+        self.__semantic_interfaces[package_name] = {}
 
-def list_provider_files(file_index=None):
-    """
-    returns a list of all provider filenames
-    """
-    file_index = _build_file_index() if file_index is None else file_index
-    providers = file_index['providers']
-    result = []
-    for p, v in providers.items():
-        result.extend([os.path.join(p, payload['file']) for payload in v])
-    return result
+    def add_interface(self, interface, file_path, package_name):
+        """Add a loaded CapabilityInterface object into the repository
 
+        :param interface: CapabilityInterface object which was loaded using a
+            factory function
+        :type interface: :py:class:`.specs.interface.CapabilityInterface`
+        :param file_path: path to the interface spec file that was loaded
+        :type file_path: str
+        :param package_name: name of the package which contains the interface
+        :type package_name: str
+        :raises: :py:exc:`DuplicateNameException` if there is a name collision
+        """
+        if interface.name in self.names:
+            raise DuplicateNameException(
+                interface.name, package_name,
+                self.get_containing_package_name(interface.name),
+                'capability_interface')
+        self.__add_package(package_name)
+        self.__interfaces[package_name][interface.name] = {
+            'path': file_path,
+            'instance': interface
+        }
 
-def list_semantic_interfaces(file_index=None):
-    """
-    Each element of the returned dict will have:
-    {full_path_to_package: [{'file': relative_filename,
-                             'package': catkin_pkg pkg object}]
-    """
-    file_index = _build_file_index() if file_index is None else file_index
-    semantic_interfaces = file_index['semantic_interfaces']
-    return semantic_interfaces
+    def add_semantic_interface(self, semantic_interface, file_path, package_name):
+        """Add a loaded SemanticCapabilityInterface object into the repository
 
+        :param semantic_interface: SemanticCapabilityInterface object which was
+            loaded using a factory function
+        :type semantic_interface:
+            :py:class:`.specs.semantic_interface.SemanticCapabilityInterface`
+        :param file_path: path to the semantic interface spec file that
+            was loaded
+        :type file_path: str
+        :param package_name: name of the package which contains the
+            semantic interface
+        :type package_name: str
+        :raises: :py:exc:`DuplicateNameException` if there is a name collision
+        :raises: :py:exc:`InterfaceNameNotFoundException` if the interface which
+            this semantic capability interface redefines is not found.
+        """
+        if semantic_interface.name in self.names:
+            raise DuplicateNameException(
+                semantic_interface.name, package_name,
+                self.get_containing_package_name(semantic_interface.name),
+                'semantic_capability_interface')
+        if semantic_interface.redefines not in self.interface_names:
+            raise InterfaceNameNotFoundException(
+                "Semantic capability interface '{0}' redefines '{1}', but the '{1}' interface was not found."
+                .format(semantic_interface.name, semantic_interface.redefines),
+                semantic_interface.name, package_name,
+                'semantic_capability_interface')
+        self.__add_package(package_name)
+        self.__semantic_interfaces[package_name][semantic_interface.name] = {
+            'path': file_path,
+            'instance': semantic_interface
+        }
 
-def list_semantic_interface_files(file_index=None):
-    """
-    returns a list of all semantic_interface filenames
-    """
-    file_index = _build_file_index() if file_index is None else file_index
-    semantic_interfaces = file_index['semantic_interfaces']
-    result = []
-    for p, v in semantic_interfaces.items():
-        result.extend([os.path.join(p, payload['file']) for payload in v])
-    return result
+    def add_provider(self, provider, file_path, package_name):
+        """Add a loaded CapabilityProvider object into the repository
+
+        :param provider: CapabilityProvider object which was loaded using a
+            factory function
+        :type provider: :py:class:`.specs.provider.CapabilityProvider`
+        :param file_path: path to the provider spec file that was loaded
+        :type file_path: str
+        :param package_name: name of the package which contains the provider
+        :type package_name: str
+        :raises: :py:exc:`DuplicateNameException` if there is a name collision
+        :raises: :py:exc:`InterfaceNameNotFoundException` if the interface which
+            this capability provider implements is not found.
+        """
+        if provider.name in self.names:
+            raise DuplicateNameException(
+                provider.name, package_name,
+                self.get_containing_package_name(provider.name),
+                'capability_provider')
+        interfaces = (self.interface_names + self.semantic_interface_names)
+        if provider.implements not in interfaces:
+            raise InterfaceNameNotFoundException(
+                "Capability provider '{0}' implements '{1}', but the '{1}' interface was not found."
+                .format(provider.name, provider.implements),
+                provider.name, package_name,
+                'capability_provider')
+        self.__add_package(package_name)
+        self.__providers[package_name][provider.name] = {
+            'path': file_path,
+            'instance': provider
+        }
+
+    def get_containing_package_name(self, spec_name):
+        """Returns the name of the package which contains the given spec
+
+        :param spec_name: name of the spec to search for
+        :type spec_name: str
+        :returns: name of the package containing the spec
+        :rtype: str
+        :raises: :py:exc:`RuntimeError` if the spec name is not found
+        """
+        if spec_name not in self.names:
+            raise RuntimeError("Spec by the name '{0}' not found.".format(spec_name))
+        for spec_dict in [self.__interfaces, self.__semantic_interfaces, self.__providers]:
+            for package_name, package_dict in spec_dict.items():
+                if spec_name in package_dict:
+                    return package_name
+
+    @property
+    def names(self):
+        """list of all names"""
+        return self.specs.keys()
+
+    @property
+    def specs(self):
+        """dict of specs, keyed by name"""
+        result = {}
+        # There should be no key collisions as collisions are found on insertion
+        result.update(self.interfaces)
+        result.update(self.semantic_interfaces)
+        result.update(self.providers)
+        return result
+
+    @property
+    def interface_names(self):
+        """list of capability interface names"""
+        return [n for i in self.__interfaces.values() for n in i.keys()]
+
+    @property
+    def interfaces(self):
+        """dict of capability interfaces, keyed by name"""
+        return dict([(n, x['instance'])
+                     for i in self.__interfaces.values() for n, x in i.items()])
+
+    @property
+    def provider_names(self):
+        """list of capability provider names"""
+        return [n for p in self.__providers.values() for n in p.keys()]
+
+    @property
+    def providers(self):
+        """dict of capability providers, keyed by name"""
+        return dict([(n, x['instance'])
+                    for p in self.__providers.values() for n, x in p.items()])
+
+    @property
+    def semantic_interface_names(self):
+        """list of semantic capability interface names"""
+        return [n
+                for si in self.__semantic_interfaces.values()
+                for n in si.keys()]
+
+    @property
+    def semantic_interfaces(self):
+        """dict of semantic capability interfaces, keyed by name"""
+        return dict([(n, x['instance'])
+                    for si in self.__semantic_interfaces.values()
+                    for n, x in si.items()])

@@ -1,0 +1,6 @@
+%YAML 1.1
+---
+name: minimal
+spec_version: 1
+implements: Minimal
+launch_file: 'launch/minimal.launch'

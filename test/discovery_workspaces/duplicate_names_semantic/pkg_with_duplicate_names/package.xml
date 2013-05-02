@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>pkg_with_duplicate_names</name>
+  <version>0.1.0</version>
+  <description>The minimal package</description>
+  <maintainer email="user@todo.todo">User Name</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+    <capability_interface>
+      interfaces/Minimal.yaml
+    </capability_interface>
+    <semantic_capability_interface>
+      interfaces/SpecificMinimal.yaml
+    </semantic_capability_interface>
+    <semantic_capability_interface>
+      interfaces/SpecificMinimal_dup.yaml
+    </semantic_capability_interface>
+
+  </export>
+</package>

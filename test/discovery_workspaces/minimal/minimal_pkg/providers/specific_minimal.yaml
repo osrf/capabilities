@@ -1,0 +1,10 @@
+%YAML 1.1
+---
+name: specific_minimal
+spec_version: 1
+spec_type: provider
+implements: SpecificMinimal
+depends_on:
+    'Minimal':
+        provider:
+            'minimal'

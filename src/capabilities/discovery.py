@@ -214,6 +214,13 @@ def spec_index_from_spec_file_index(spec_file_index):
     """
     spec_index = SpecIndex()
     errors = []
+    error_types = (
+        InterfaceNameNotFoundException,
+        DuplicateNameException,
+        InvalidInterface,
+        InvalidSemanticInterface,
+        InvalidProvider
+    )
     # First load and process CapabilityInterface's
     for package_name, package_dict in spec_file_index.items():
         interface_paths = package_dict['capability_interface']
@@ -221,7 +228,7 @@ def spec_index_from_spec_file_index(spec_file_index):
             try:
                 interface = capability_interface_from_file_path(path)
                 spec_index.add_interface(interface, path, package_name)
-            except InvalidInterface as e:
+            except error_types as e:
                 errors.append(e)
     # Then load the SemanticCapabilityInterface's
     for package_name, package_dict in spec_file_index.items():
@@ -230,7 +237,7 @@ def spec_index_from_spec_file_index(spec_file_index):
             try:
                 si = semantic_capability_interface_from_file_path(path)
                 spec_index.add_semantic_interface(si, path, package_name)
-            except InvalidSemanticInterface as e:
+            except error_types as e:
                 errors.append(e)
     # Finally load the CapabilityProvider's
     for package_name, package_dict in spec_file_index.items():
@@ -239,7 +246,7 @@ def spec_index_from_spec_file_index(spec_file_index):
             try:
                 provider = capability_provider_from_file_path(path)
                 spec_index.add_provider(provider, path, package_name)
-            except InvalidProvider as e:
+            except error_types as e:
                 errors.append(e)
     return spec_index, errors
 

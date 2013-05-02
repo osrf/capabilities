@@ -30,32 +30,32 @@ def test_load_invalid_specs():
     workspaces = [os.path.join(test_data_dir, 'invalid_specs')]
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
-    with assert_raises(discovery.InterfaceNameNotFoundException):
-        spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    assert discovery.InterfaceNameNotFoundException in [type(x) for x in errors]
 
 
 def test_load_duplicate_names():
     workspaces = ['test/discovery_workspaces/duplicate_names']
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
-    with assert_raises(discovery.DuplicateNameException):
-        spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    assert discovery.DuplicateNameException in [type(x) for x in errors]
 
 
 def test_load_duplicate_names_semantic():
     workspaces = [os.path.join(test_data_dir, 'duplicate_names_semantic')]
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
-    with assert_raises(discovery.DuplicateNameException):
-        spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    assert discovery.DuplicateNameException in [type(x) for x in errors]
 
 
 def test_load_duplicate_names_multi_package():
     workspaces = [os.path.join(test_data_dir, 'duplicate_names_multi_package')]
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
-    with assert_raises(discovery.DuplicateNameException):
-        spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+    assert discovery.DuplicateNameException in [type(x) for x in errors]
 
 
 def test_get_ros_package_paths():

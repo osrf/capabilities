@@ -35,11 +35,12 @@ def test_load_invalid_specs():
 
 
 def test_load_duplicate_names():
-    workspaces = ['test/discovery_workspaces/duplicate_names']
+    workspaces = [os.path.join(test_data_dir, 'duplicate_names')]
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
     spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
-    assert discovery.DuplicateNameException in [type(x) for x in errors]
+    error_types = [type(x) for x in errors]
+    assert discovery.DuplicateNameException in error_types, error_types
 
 
 def test_load_duplicate_names_semantic():
@@ -47,7 +48,8 @@ def test_load_duplicate_names_semantic():
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
     spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
-    assert discovery.DuplicateNameException in [type(x) for x in errors]
+    error_types = [type(x) for x in errors]
+    assert discovery.DuplicateNameException in error_types, error_types
 
 
 def test_load_duplicate_names_multi_package():
@@ -55,7 +57,8 @@ def test_load_duplicate_names_multi_package():
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_packages_dict(package_index)
     spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
-    assert discovery.DuplicateNameException in [type(x) for x in errors]
+    error_types = [type(x) for x in errors]
+    assert discovery.DuplicateNameException in error_types, error_types
 
 
 def test_get_ros_package_paths():

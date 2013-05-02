@@ -185,6 +185,7 @@ class SemanticCapabilityInterface(object):
     """Represents a Semantic Capability Interface
 
     A Semantic Capability Interface is defined by:
+
     - name (str): name of the redefined interface
     - redefines (str): name of a capability being redefined
     - spec_type (str): type of the interface specification (has to be 'semantic_interface')

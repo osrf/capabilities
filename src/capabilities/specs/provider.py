@@ -128,7 +128,7 @@ def capability_provider_from_string(string, file_name='<string>'):
     :param string: Capability Provider spec
     :type string: str
     :param file_name: Name of the file where this spec originated (defaults to '<string>')
-    :param file_name: str
+    :type file_name: str
     :returns: CapabilityProvider instance, populated with the provided spec
     :rtype: :py:class:`CapabilityProvider`
     :raises: :py:exc:`AttributeError` if the given value for string is not a str
@@ -142,7 +142,7 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
     :param string: Capability Provider spec
     :type string: dict
     :param file_name: Name of the file where this spec originated (defaults to '<dict>')
-    :param file_name: str
+    :type file_name: str
     :returns: CapabilityProvider instance, populated with the provided spec
     :rtype: :py:class:`CapabilityProvider`
     :raises: :py:exc:`InvalidProvider` if the spec is not complete or has invalid entries
@@ -192,6 +192,7 @@ class CapabilityProvider(object):
     """Represents a Capability Provider
 
     A Capability Provider is defined by:
+
     - name (str): name of the provider
     - spec_type (str): type of the specification (has to be 'provider')
     - spec_version (int): version of the provider specification
@@ -228,6 +229,7 @@ class DependsOnRelationship(object):
     """Models the depends_on relationship between a Capability Provider and a Capability
 
     This relationship consists of:
+
     - capability_name (str): name of the Capability which is depended on
     - provider_preference (str): (optional) name of preferred provider for the Capability which is depended on
     - remappings (dict): map of ROS Names defined in the Capability to their new names for this provider

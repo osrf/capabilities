@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from .common import assert_raises, assert_raises_regex, redirected_stdio, evironment
+from .common import assert_raises, assert_raises_regex, redirected_stdio, environment
 
 from capabilities import server
 
@@ -22,8 +22,8 @@ def test_create_parser():
 
 
 def test_main():
-    with evironment({'ROS_PACKAGE_PATH': '/path1'}):
+    with environment({'ROS_PACKAGE_PATH': '/path1'}):
         server.main([])
-    with evironment({}):
+    with environment({}):
         with assert_raises_regex(SystemExit, 'No package paths specified'):
             server.main([])

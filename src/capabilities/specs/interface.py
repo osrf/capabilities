@@ -233,18 +233,27 @@ class Interface(object):
     """Represents the Interface part of a Capability Interface
 
     An Interface can consist of zero to all of these elements:
+
     - topics: (name/type)
+
       - requires: Expected topics
       - provides: Provided topics
+
     - services: (name/type)
+
       - requires: Expected services
       - provides: Provided services
+
     - actions: (name/type)
+
       - requires: Expected actions
       - provides: Provided actions
+
     - parameters: (name/type/description)
+
       - requires: Parameters which should be set for the interface, e.g. map_resolution
       - provides: Parameters which the interface provides, e.g. robot_model
+
     - dynamic_parameters: List of dynamic_parameters which are available (name)
 
     The groupings 'requires' and 'provides' are purely semantic,
@@ -312,7 +321,7 @@ class Interface(object):
         :param interface_element: :py:class:`InterfaceElement` instance for the topic
         :type interface_element: :py:class:`InterfaceElement`
         :param grouping: semantic grouping of the topic, 'requires', 'provides', or None
-        :type grouping: str or None
+        :type grouping: :py:obj:`str` or :py:obj:`None`
         :raises: :py:exc:`ValueError` if the grouping is invalid
         :raises: :py:exc:`RuntimeError` if the topic is already in the interface
         """
@@ -340,7 +349,7 @@ class Interface(object):
         :param interface_element: :py:class:`InterfaceElement` instance for the service
         :type interface_element: :py:class:`InterfaceElement`
         :param grouping: semantic grouping of the service, 'requires', 'provides', or None
-        :type grouping: str or None
+        :type grouping: :py:obj:`str` or :py:obj:`None`
         :raises: :py:exc:`ValueError` if the grouping is invalid
         :raises: :py:exc:`RuntimeError` if the service is already in the interface
         """
@@ -368,7 +377,7 @@ class Interface(object):
         :param interface_element: :py:class:`InterfaceElement` instance for the action
         :type interface_element: :py:class:`InterfaceElement`
         :param grouping: semantic grouping of the action, 'requires', 'provides', or None
-        :type grouping: str or None
+        :type grouping: :py:obj:`str` or :py:obj:`None`
         :raises: :py:exc:`ValueError` if the grouping is invalid
         :raises: :py:exc:`RuntimeError` if the action is already in the interface
         """
@@ -396,7 +405,7 @@ class Interface(object):
         :param interface_element: :py:class:`InterfaceElement` instance for the parameter
         :type interface_element: :py:class:`InterfaceElement`
         :param grouping: semantic grouping of the parameter, 'requires', 'provides', or None
-        :type grouping: str or None
+        :type grouping: :py:obj:`str` or :py:obj:`None`
         :raises: :py:exc:`ValueError` if the grouping is invalid
         :raises: :py:exc:`RuntimeError` if the parameter is already in the interface
         """
@@ -424,6 +433,7 @@ class InterfaceElement(object):
     """Represents a part of an interface
 
     An interface element is defined by:
+
     - name: topic, service, action, or parameter name
     - element kind: topic, service, action, parameter, or dynamic_parameter
     - type: topic, service or action type (pkg/msg) or parameter type
@@ -445,6 +455,7 @@ class CapabilityInterface(Interface):
     """Represents a Capability Interface
 
     A Capability Interface is defined by:
+
     - name (str): name of the interface
     - spec_type (str): type of the interface specification (has to be 'interface')
     - spec_version (int): version of the interface specification

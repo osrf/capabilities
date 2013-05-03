@@ -90,6 +90,8 @@ class CapabilityServer(object):
             'get_semantic_interfaces', GetSemanticInterfaces,
             self.handle_get_semantic_interfaces)
 
+        rospy.loginfo("Capability Server Ready")
+
         rospy.spin()
 
     def __load_capabilities(self):
@@ -105,6 +107,7 @@ class CapabilityServer(object):
                     rospy.logerror("  InterfaceNameNotFoundException: " + str(error))
                 else:
                     rospy.logerror("  " + str(type(error)) + ": " + str(error))
+        self.__spec_index = spec_index
 
     def handle_reload_request(self, req):
         rospy.loginfo("Reloading capabilities...")
@@ -115,10 +118,22 @@ class CapabilityServer(object):
         return GetInterfacesResponse(self.__spec_index.interface_names)
 
     def handle_get_providers(self, req):
-        return GetProvidersResponse(self.__spec_index.provider_names)
+        if req.interface:
+            providers = [p.name
+                         for p in self.__spec_index.providers.values()
+                         if p.implements == req.interface]
+        else:
+            providers = self.__spec_index.provider_names
+        return GetProvidersResponse(providers)
 
     def handle_get_semantic_interfaces(self, req):
-        return GetSemanticInterfacesResponse(self.__spec_index.semantic_interface_names)
+        if req.interface:
+            sifaces = [si.name
+                       for si in self.__spec_index.semantic_interfaces.values()
+                       if si.redefines == req.interface]
+        else:
+            sifaces = self.__spec_index.semantic_interface_names
+        return GetSemanticInterfacesResponse(sifaces)
 
 
 def create_parser():

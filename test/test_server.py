@@ -22,8 +22,6 @@ def test_create_parser():
 
 
 def test_main():
-    with environment({'ROS_PACKAGE_PATH': '/path1'}):
-        server.main([])
     with environment({}):
         with assert_raises_regex(SystemExit, 'No package paths specified'):
             server.main([])

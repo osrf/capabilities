@@ -42,7 +42,7 @@ You can use this API as follows, assuming workspace of
 
     >>> from pprint import pprint
     >>> from capabilities.discovery import package_index_from_package_path
-    >>> from capabilities.discovery import spec_file_index_from_packages_dict
+    >>> from capabilities.discovery import spec_file_index_from_package_index
     >>> from capabilities.discovery import spec_index_from_spec_file_index
     >>> workspaces = ['test/discovery_workspaces/minimal']
     >>> package_index = package_index_from_package_path(workspaces)
@@ -114,15 +114,6 @@ class InterfaceNameNotFoundException(Exception):
         Exception.__init__(self, msg)
 
 
-def get_ros_package_paths():
-    """Load the ``ROS_PACKAGE_PATH`` from the environment.
-
-    :returns: list of paths from the ``ROS_PACKAGE_PATH``
-    :rtype: list
-    """
-    return os.getenv('ROS_PACKAGE_PATH', '').split(':')
-
-
 def package_index_from_package_path(package_paths):
     """Find all packages on the given list of paths
 
@@ -146,7 +137,7 @@ def package_index_from_package_path(package_paths):
     return result
 
 
-def spec_file_index_from_packages_dict(package_index):
+def spec_file_index_from_package_index(package_index):
     """Creates an index of spec files by package.
 
     Takes a dict of package objects keyed by package name.

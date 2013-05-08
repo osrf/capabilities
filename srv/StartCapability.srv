@@ -1,0 +1,4 @@
+string capability
+string preferred_provider
+---
+bool successful

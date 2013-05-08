@@ -1,15 +1,10 @@
 %YAML 1.1
 # Capability Interface file for Navigation
 ---
-# Name of the Interface
 name: Navigation
 spec_version: 1
 spec_type: interface
-#
-#
 description: 'This Capability describes the minimal interface for interacting with a robot which has the ability to navigate its environment autonomously.'
-#
-#
 interface:
   topics:
     provides:

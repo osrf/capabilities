@@ -391,6 +391,12 @@ class SpecIndex(object):
                      for i in self.__interfaces.values() for n, x in i.items()])
 
     @property
+    def interface_paths(self):
+        """dict of capability interface spec paths, keyed by name"""
+        return dict([(n, x['path'])
+                     for i in self.__interfaces.values() for n, x in i.items()])
+
+    @property
     def provider_names(self):
         """list of capability provider names"""
         return [n for p in self.__providers.values() for n in p.keys()]
@@ -400,6 +406,12 @@ class SpecIndex(object):
         """dict of capability providers, keyed by name"""
         return dict([(n, x['instance'])
                     for p in self.__providers.values() for n, x in p.items()])
+
+    @property
+    def provider_paths(self):
+        """dict of capability provider spec paths, keyed by name"""
+        return dict([(n, x['path'])
+                     for i in self.__providers.values() for n, x in i.items()])
 
     @property
     def semantic_interface_names(self):
@@ -414,3 +426,10 @@ class SpecIndex(object):
         return dict([(n, x['instance'])
                     for si in self.__semantic_interfaces.values()
                     for n, x in si.items()])
+
+    @property
+    def semantic_interface_paths(self):
+        """dict of semantic capability interface spec paths, keyed by name"""
+        return dict([(n, x['path'])
+                     for i in self.__semantic_interfaces.values()
+                     for n, x in i.items()])

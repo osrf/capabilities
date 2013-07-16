@@ -390,6 +390,8 @@ def create_parser():
 
 
 def main(sysargv=None):
+    sys.argv = rospy.myargv(argv=sys.argv)
+
     parser = create_parser()
     args = parser.parse_args(sysargv)
 

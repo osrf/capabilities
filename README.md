@@ -157,7 +157,54 @@ successful: True
 
 This is telling the capability server to start the `Minimal` capability, preferring the `minimal` provider.
 
-You can switch back to the `capability_server` and see that it is printing the message to the screen. After 10 seconds this node should shutdown normally.
+You can switch back to the `capability_server` and see that it is printing the message to the screen. After 10 seconds this node should shutdown normally, but you will get an error message like this:
+
+```
+[INFO] [WallTime: 1374023441.816336] Request to start capability 'Minimal' with provider 'minimal'
+... logging to /Users/william/.ros/log/901417f8-ee7d-11e2-9b39-542696cef915/roslaunch-dosa-90541.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+
+started roslaunch server http://dosa:54017/
+
+SUMMARY
+========
+
+PARAMETERS
+ * /rosdistro
+ * /rosversion
+
+NODES
+  /
+    minimal (minimal_pkg/minimal.py)
+
+ROS_MASTER_URI=http://localhost:11311
+
+core service [/rosout] found
+process[minimal-1]: started with pid [90564]
+[INFO] [WallTime: 1374023442.906086] hello world 1374023442.91
+[INFO] [WallTime: 1374023443.907306] hello world 1374023443.91
+[INFO] [WallTime: 1374023444.909204] hello world 1374023444.91
+[INFO] [WallTime: 1374023445.911004] hello world 1374023445.91
+[INFO] [WallTime: 1374023446.912970] hello world 1374023446.91
+[INFO] [WallTime: 1374023447.914730] hello world 1374023447.91
+[INFO] [WallTime: 1374023448.916598] hello world 1374023448.92
+[INFO] [WallTime: 1374023449.918565] hello world 1374023449.92
+[INFO] [WallTime: 1374023450.919426] hello world 1374023450.92
+[INFO] [WallTime: 1374023451.921269] hello world 1374023451.92
+[minimal-1] process has finished cleanly
+log file: /Users/william/.ros/log/901417f8-ee7d-11e2-9b39-542696cef915/minimal-1*.log
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+done
+[ERROR] [WallTime: 1374023453.342853] Capability Instance 'minimal' terminated unexpectedly, it was previously in the 'running' state.
+[INFO] [WallTime: 1374023453.343502] Capability Provider 'minimal' for Capability 'Minimal' has terminated.
+```
+
+This is because from the `capability_server`'s perspective the launch file it ran shutdown unexpectedly. This is normal for this launch file, but probably an error for most launch files which are designed to run forever, until stopped.
+
+### Stopping a capability
 
 If you run the capability again:
 

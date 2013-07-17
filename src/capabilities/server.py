@@ -76,6 +76,11 @@ from capabilities.msg import CapabilityEvent
 
 
 class CapabilityInstance(object):
+    """Encapsulates the state of an instance of a Capability Provider
+
+    This class encapsulates the state of the capability instance and
+    provides methods for changing the states of the instance.
+    """
     def __init__(self, provider, provider_path):
         self.__state = 'waiting'
         self.name = provider.name
@@ -88,9 +93,17 @@ class CapabilityInstance(object):
 
     @property
     def state(self):
+        """Get the current state of the CapabilityInstance"""
         return self.__state
 
     def launch(self):
+        """Change to the 'launching' state
+
+        Fails to transition if the current state is not 'waiting'.
+
+        :returns: True if transition is successful, False otherwise
+        :rtype: bool
+        """
         if self.state != 'waiting':
             rospy.logerr(
                 "Capability Provider '{0}' ".format(self.name) +
@@ -101,6 +114,14 @@ class CapabilityInstance(object):
         return True
 
     def cancel(self):
+        """Cancels the instance, which can only be done while it is still 'waiting'
+
+        Fails to cancel if the current state is not 'waiting'.
+        "Canceling" is achieved by setting the canceled member variable to True.
+
+        :returns: True if canceling is successful, False otherwise
+        :rtype: bool
+        """
         if self.state != 'waiting':
             rospy.logerr(
                 "Capability Instance '{0}' ".format(self.name) +
@@ -111,6 +132,16 @@ class CapabilityInstance(object):
         return True
 
     def launched(self, pid):
+        """Called once the instance is "launched", changes state to 'running'
+
+        Fails to transition if the current state is not 'launching'.
+        If successful, the state changes to 'running'.
+
+        :param pid: process ID of the instance being tracked
+        :type pid: int
+        :returns: True if transition is successful, False otherwise
+        :rtype: bool
+        """
         self.pid = pid
         if self.state != 'launching':
             rospy.logerr(
@@ -122,6 +153,13 @@ class CapabilityInstance(object):
         return True
 
     def stopped(self):
+        """Change to the 'stopping' state
+
+        Fails to transition if the current state is not either 'running' or 'launching'.
+
+        :returns: True if transition is successful, False otherwise
+        :rtype: bool
+        """
         if self.state not in ['running', 'launching']:
             rospy.logerr(
                 "Capability Instance '{0}' ".format(self.name) +
@@ -133,6 +171,13 @@ class CapabilityInstance(object):
         return True
 
     def terminated(self):
+        """Called when the instance has terminated, transitions to the 'terminated' state
+
+        Fails to transition if the current state is not 'stopping'.
+
+        :returns: True if transition is successful, False otherwise
+        :rtype: bool
+        """
         if self.state != 'stopping':
             rospy.logerr(
                 "Capability Instance '{0}' ".format(self.name) +
@@ -144,6 +189,17 @@ class CapabilityInstance(object):
 
 
 def get_reverse_depends(name, capability_instances):
+    """Gets the reverse dependencies of a given Capability
+
+    :param name: Name of the Capability which the instances might depend on
+    :type name: str
+    :param capability_instances: list of instances to search for having a
+        dependency on the given Capability
+    :type capability_instances: :py:obj:`list` of :py:class:`CapabilityInstance`
+    :returns: A list of :py:class:`CapabilityInstance`'s which depend on the
+        given Capability name
+    :rtype: :py:obj:`list` of :py:class:`CapabilityInstance`
+    """
     rdepends = []
     for instance in capability_instances.values():
         if name in instance.depends_on:
@@ -163,6 +219,7 @@ class CapabilityServer(object):
         self.__launch_manager = LaunchManager()
 
     def run(self):
+        """Starts the capability server by setting up ROS communications"""
         self.__load_capabilities()
 
         self.__start_capability_service = rospy.Service(
@@ -192,6 +249,7 @@ class CapabilityServer(object):
         rospy.spin()
 
     def stop(self):
+        """Stops the capability server"""
         self.__launch_manager.stop()
 
     def handle_capability_events(self, event):

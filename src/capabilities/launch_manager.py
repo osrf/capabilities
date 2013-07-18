@@ -76,14 +76,11 @@ def which(program):
     return None
 
 
-__roslaunch_executable = which('roslaunch')
-assert __roslaunch_executable is not None, "'roslaunch' executable not found"
-
-
 class LaunchManager(object):
     """Manages multiple launch files which implement capabilities"""
+    __roslaunch_exec = which('roslaunch')
+
     def __init__(self):
-        self.__roslaunch_exec = __roslaunch_executable
         self.__running_launch_files_lock = threading.Lock()
         with self.__running_launch_files_lock:
             self.__running_launch_files = {}
@@ -164,3 +161,6 @@ class LaunchManager(object):
             self.__event_publisher.publish(msg)
         except Exception as e:
             print(str(e), file=sys.stderr)
+
+
+assert LaunchManager._LaunchManager__roslaunch_exec is not None, "'roslaunch' executable not found"

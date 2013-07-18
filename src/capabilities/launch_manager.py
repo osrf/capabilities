@@ -33,8 +33,7 @@
 
 # Author: William Woodall <william@osrfoundation.org>
 
-"""This module implements the launching of capabilities.
-"""
+"""This module manages the launching of capabilities"""
 
 from __future__ import print_function
 
@@ -110,10 +109,22 @@ class LaunchManager(object):
         thread.join()
 
     def stop_capability_provider(self, pid):
+        """Stops the launch file for a capability provider, by pid
+
+        :param pid: process ID of the launch file process that be stopped.
+        :type pid: int
+        """
         with self.__running_launch_files_lock:
             self.__stop_by_pid(pid)
 
     def handle_capability_events(self, msg):
+        """Callback for events recieved on the events topic
+
+        Only handles TERMINDATED events, all other events are discarded.
+
+        :param msg: ROS message recieved on the events topic
+        :type msg: :py:class:`capabilities.msgs.CapabilityEvent`
+        """
         if msg.type != msg.TERMINATED:
             return
         with self.__running_launch_files_lock:
@@ -121,6 +132,13 @@ class LaunchManager(object):
                 del self.__running_launch_files[msg.pid]
 
     def run_capability_provider(self, provider, provider_path):
+        """Runs a given capability provider by launching its launch file
+
+        :param provider: provider that should be launched
+        :type provider: :py:class:`capabilities.specs.provider.CapabilityProvider`
+        :param provider_path: path which the provider spec file is located at
+        :type provider_path: str
+        """
         if os.path.isfile(provider_path):
             provider_path = os.path.dirname(provider_path)
         launch_file = os.path.join(provider_path, provider.launch_file)

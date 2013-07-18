@@ -218,8 +218,8 @@ class CapabilityServer(object):
         self.__capability_instances = {}
         self.__launch_manager = LaunchManager()
 
-    def run(self):
-        """Starts the capability server by setting up ROS communications"""
+    def spin(self):
+        """Starts the capability server by setting up ROS comms, then spins"""
         self.__load_capabilities()
 
         self.__start_capability_service = rospy.Service(
@@ -248,8 +248,8 @@ class CapabilityServer(object):
 
         rospy.spin()
 
-    def stop(self):
-        """Stops the capability server"""
+    def shutdown(self):
+        """Stops the capability server and cleans up any running processes"""
         self.__launch_manager.stop()
 
     def handle_capability_events(self, event):
@@ -472,5 +472,5 @@ def main(sysargv=None):
     rospy.init_node('capability_server')
 
     capability_server = CapabilityServer(ros_package_path)
-    capability_server.run()
-    capability_server.stop()
+    capability_server.spin()
+    capability_server.shutdown()

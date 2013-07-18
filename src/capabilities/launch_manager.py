@@ -91,7 +91,14 @@ class LaunchManager(object):
         self.stopping = False
 
     def stop(self):
+        """Stops the launch manager, also stopping any running launch files"""
+        if self.stopping:
+            return
         with self.__running_launch_files_lock:
+            # Incase the other thread tried the lock before this thread updated
+            # the self.stopping variable, check it again.
+            if self.stopping:
+                return
             self.stopping = True
             for pid in self.__running_launch_files:
                 self.__stop_by_pid(pid)

@@ -133,7 +133,7 @@ def semantic_capability_interface_from_string(string, file_name='<string>'):
     :param string: Semantic Capability Interface spec
     :type string: str
     :param file_name: Name of the file where this spec originated (defaults to '<string>')
-    :param file_name: str
+    :type file_name: str
     :returns: SemanticCapabilityInterface instance, populated with the provided spec
     :rtype: :py:class:`SemanticCapabilityInterface`
     :raises: :py:exc:`AttributeError` if the given value for string is not a str
@@ -147,7 +147,7 @@ def semantic_capability_interface_from_dict(spec, file_name='<dict>'):
     :param string: Capability Interface spec
     :type string: dict
     :param file_name: Name of the file where this spec originated (defaults to '<dict>')
-    :param file_name: str
+    :type file_name: str
     :returns: CapabilityInterface instance, populated with the provided spec
     :rtype: :py:class:`CapabilityInterface`
     :raises: :py:exc:`InvalidInterface` if the spec is not complete or has invalid entries

@@ -59,6 +59,8 @@ from capabilities.srv import GetProviders
 from capabilities.srv import GetProvidersResponse
 from capabilities.srv import GetSemanticInterfaces
 from capabilities.srv import GetSemanticInterfacesResponse
+from capabilities.srv import GetRunningCapabilities
+from capabilities.srv import GetRunningCapabilitiesResponse
 from capabilities.srv import StartCapability
 from capabilities.srv import StartCapabilityResponse
 from capabilities.srv import StopCapability
@@ -72,7 +74,9 @@ from capabilities.discovery import InterfaceNameNotFoundException
 
 from capabilities.launch_manager import LaunchManager
 
+from capabilities.msg import Capability
 from capabilities.msg import CapabilityEvent
+from capabilities.msg import RunningCapability
 
 
 class CapabilityInstance(object):
@@ -241,6 +245,10 @@ class CapabilityServer(object):
         self.__semantic_interfaces_service = rospy.Service(
             'get_semantic_interfaces', GetSemanticInterfaces,
             self.handle_get_semantic_interfaces)
+
+        self.__running_capabilities = rospy.Service(
+            'get_running_capabilities', GetRunningCapabilities,
+            self.handle_get_running_capabilities)
 
         rospy.Subscriber(
             'events', CapabilityEvent, self.handle_capability_events)
@@ -446,6 +454,21 @@ class CapabilityServer(object):
         else:
             sifaces = self.__spec_index.semantic_interface_names
         return GetSemanticInterfacesResponse(sifaces)
+
+    def handle_get_running_capabilities(self, req):
+        resp = GetRunningCapabilitiesResponse()
+        for instance in self.__capability_instances.values():
+            if instance.state not in ['running']:
+                continue
+            running_capability = RunningCapability()
+            running_capability.capability = Capability(instance.interface, instance.name)
+            running_capability.started_by = instance.started_by
+            running_capability.pid = instance.pid
+            rdepends = get_reverse_depends(instance.interface, self.__capability_instances)
+            for dep in rdepends:
+                running_capability.dependent_capabilities.append(Capability(dep.interface, dep.name))
+            resp.running_capabilities.append(running_capability)
+        return resp
 
 
 def create_parser():

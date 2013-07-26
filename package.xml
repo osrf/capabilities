@@ -9,7 +9,7 @@
   <maintainer email="william@osrfoundation.org">William Woodall</maintainer>
   <license>BSD</license>
 
-  <!-- <url type="website">http://ros.org/wiki/capabilities</url> -->
+  <url type="website">http://ros.org/wiki/capabilities</url>
   <url type="repository">https://github.com/osrf/capabilities</url>
   <url type="bugtracker">https://github.com/osrf/capabilities/issues</url>
 
@@ -21,9 +21,12 @@
   <build_depend>roslaunch</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
+
   <run_depend>message_runtime</run_depend>
   <run_depend>roslaunch</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
+
+  <test_depend>geometry_msgs</test_depend>
 
 </package>

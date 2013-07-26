@@ -4,19 +4,19 @@ import rospy
 from std_msgs.msg import String
 
 
-def minimal():
-    pub = rospy.Publisher('chatter', String)
+def main():
     rospy.init_node('minimal')
+    pub = rospy.Publisher('chatter', String)
     start = rospy.Time.now()
     while not rospy.is_shutdown() and (rospy.Time.now() - start).to_sec() < 10:
-        str = "hello world %s" % rospy.get_time()
-        rospy.loginfo(str)
-        pub.publish(String(str))
+        log = "hello world %s" % rospy.get_time()
+        rospy.loginfo(log)
+        pub.publish(String(log))
         rospy.sleep(1.0)
 
 
 if __name__ == '__main__':
     try:
-        minimal()
+        main()
     except rospy.ROSInterruptException:
         pass

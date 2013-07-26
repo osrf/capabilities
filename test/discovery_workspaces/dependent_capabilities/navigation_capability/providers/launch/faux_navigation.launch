@@ -1,0 +1,3 @@
+<launch>
+    <node name="faux_navigation" pkg="navigation_capability" type="faux_navigation.py" output="screen" />
+</launch>

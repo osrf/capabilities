@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <name>differential_mobile_base_capability</name>
+  <version>0.1.0</version>
+  <description>The differential mobile base capability package</description>
+  <maintainer email="user@todo.todo">User Name</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+    <capability_interface>
+      interfaces/DifferentialMobileBase.yaml
+    </capability_interface>
+    <capability_provider>
+      providers/faux_differential_mobile_base.yaml
+    </capability_provider>
+
+  </export>
+</package>

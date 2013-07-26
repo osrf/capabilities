@@ -81,15 +81,16 @@ class CapabilityInstance(object):
     This class encapsulates the state of the capability instance and
     provides methods for changing the states of the instance.
     """
-    def __init__(self, provider, provider_path):
+    def __init__(self, provider, provider_path, started_by='unknown'):
         self.__state = 'waiting'
         self.name = provider.name
         self.provider = provider
         self.provider_path = provider_path
         self.interface = provider.implements
         self.pid = None
-        self.depends_on = []
+        self.depends_on = [x for x in provider.dependencies]
         self.canceled = False
+        self.started_by = started_by
 
     @property
     def state(self):
@@ -303,13 +304,14 @@ class CapabilityServer(object):
         # If any of the waiting have no blocking dependencies start them
         for instance in waiting:
             blocking_dependencies = []
-            for dependency in instance.depends_on:
-                if dependency not in [x.name for x in self.__capability_instances]:
+            for dependency_name in instance.depends_on:
+                if dependency_name not in self.__capability_instances:
                     rospy.logerr(
                         "Inconsistent capability run graph, '{0}' depends on "
-                        .format(instance.name) + "'{1}', ".format(dependency) +
+                        .format(instance.name) + "'{0}', ".format(dependency_name) +
                         "which is not in the list of capability instances.")
                     return
+                dependency = self.__capability_instances[dependency_name]
                 if dependency.state != 'running':
                     blocking_dependencies.append(dependency)
             if not blocking_dependencies:
@@ -347,16 +349,16 @@ class CapabilityServer(object):
                     raise RuntimeError("Capability Provider '{0}' not found"
                                        .format(provider_name))
                 dep_provider = self.__spec_index.providers[provider_name]
-                result.append(dep_provider)
+                result.append((dep_provider, provider.name))
             return result
 
         instances = []
-        providers = [provider]
+        providers = [(provider, 'user service call')]
         while providers:
-            curr = providers.pop()
+            curr, reason = providers.pop()
             providers.extend(get_provider_dependencies(curr))
             curr_path = self.__spec_index.provider_paths[curr.name]
-            instances.append(CapabilityInstance(curr, curr_path))
+            instances.append(CapabilityInstance(curr, curr_path, started_by=reason))
         return instances
 
     def __get_providers_for_interface(self, interface):

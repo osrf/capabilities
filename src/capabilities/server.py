@@ -337,7 +337,7 @@ class CapabilityServer(object):
     def __get_capability_instances_from_provider(self, provider):
         def get_provider_dependencies(provider):
             result = []
-            for interface, dep in provider.dependencies:
+            for interface, dep in provider.dependencies.items():
                 provider_name = dep.provider
                 if provider_name is None:
                     capability = dep.capability

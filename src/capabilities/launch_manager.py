@@ -143,7 +143,7 @@ class LaunchManager(object):
             provider_path = os.path.dirname(provider_path)
         launch_file = os.path.join(provider_path, provider.launch_file)
         with self.__running_launch_files_lock:
-            if launch_file in [x[3] for x in self.__running_launch_files]:
+            if launch_file in [x[3] for x in self.__running_launch_files.values()]:
                 raise RuntimeError("Launch file at '{0}' is already running."
                                    .format(launch_file))
             cmd = [self.__roslaunch_exec, launch_file]

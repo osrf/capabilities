@@ -103,6 +103,8 @@ class LaunchManager(object):
                 self.__stop_by_pid(pid)
 
     def __stop_by_pid(self, pid):
+        if pid not in self.__running_launch_files:
+            raise RuntimeError("No running launch file with PID of '{0}'".format(pid))
         proc, thread, _, _ = self.__running_launch_files[pid]
         proc.terminate()
         proc.wait()

@@ -78,6 +78,8 @@ from capabilities.msg import Capability
 from capabilities.msg import CapabilityEvent
 from capabilities.msg import RunningCapability
 
+USER_SERVICE_REASON = 'user service call'
+
 
 class CapabilityInstance(object):
     """Encapsulates the state of an instance of a Capability Provider
@@ -291,18 +293,51 @@ class CapabilityServer(object):
                     "Capability Provider '{0}' for Capability '{1}' "
                     .format(event.provider, event.capability) +
                     "has terminated.")
-                # Stop or cancel any dependents
-                reverse_depends = get_reverse_depends(
-                    instance, self.__capability_instances)
-                for dependency in reverse_depends:
-                    if dependency.state == 'running':
-                        self.__stop_capability(dependency.name)
-                    if dependency.state == 'waiting':
-                        dependency.cancel()
             elif event.type == event.STOPPED:
                 self.__capability_instances[capability].stopped()
             # Update the graph
             self.__update_graph()
+
+    def __remove_terminated_capabilities(self):
+        # collect all of the terminated capabilities
+        terminated = [x
+                      for x in self.__capability_instances.values()
+                      if x.state == 'terminated']
+        # Remove terminated instances
+        for instance in terminated:
+            del self.__capability_instances[instance.interface]
+            # Shutdown unused capabilities
+            self.__cleanup_graph()
+
+    def __cleanup_graph(self):
+        """Iterate over the running capabilities and shutdown ones which are no longer needed
+
+        For each running capability, if it was not started by the user then look at who depends on it.
+        If no other capabilities depend on it, then shut it down.
+        """
+        # Collect all running capabilities
+        running_capabilities = [x
+                                for x in self.__capability_instances.values()
+                                if x.state == 'running']
+        for cap in running_capabilities:
+            if cap.started_by == USER_SERVICE_REASON:
+                # Started by user, do not garbage collect this
+                continue
+            rdepends = get_reverse_depends(cap.name, self.__capability_instances)
+            if rdepends:
+                # Someone depends on me, do not garbage collect this
+                continue
+            if cap.state == 'running':
+                rospy.loginfo("Stopping the '{0}' provider of the '{1}' interface, because it has no dependents left."
+                              .format(cap.name, cap.interface))
+                self.__stop_capability(cap.interface)
+            elif cap.state == 'waiting':
+                rospy.loginfo("Canceling the '{0}' provider of the '{1}' interface, because it has no dependents left."
+                              .format(cap.name, cap.interface))
+                cap.cancel()
+            # Else the state is launching, stopping, or terminated
+            # In which case launching will be caught on the next cleanup
+            # and the latter two will get cleared out also.
 
     def __update_graph(self):
         # collect all of the waiting capabilities
@@ -327,13 +362,8 @@ class CapabilityServer(object):
                 self.__launch_manager.run_capability_provider(
                     instance.provider, instance.provider_path
                 )
-        # collect all of the terminated capabilities
-        terminated = [x
-                      for x in self.__capability_instances.values()
-                      if x.state == 'terminated']
-        # Remove terminated instances
-        for instance in terminated:
-            del self.__capability_instances[instance.interface]
+        # Remove any terminated capabilities
+        self.__remove_terminated_capabilities()
 
     def __stop_capability(self, name):
         if name not in self.__capability_instances:
@@ -341,8 +371,9 @@ class CapabilityServer(object):
                          "capability '{0}', ".format(name) +
                          "which is not in the list of capability instances.")
             return
-        self.__launch_manager.stop_capability_provider(
-            self.__capability_instances[name].pid)
+        capability = self.__capability_instances[name]
+        capability.stopped()
+        self.__launch_manager.stop_capability_provider(capability.pid)
 
     def __get_capability_instances_from_provider(self, provider):
         def get_provider_dependencies(provider):
@@ -361,7 +392,7 @@ class CapabilityServer(object):
             return result
 
         instances = []
-        providers = [(provider, 'user service call')]
+        providers = [(provider, USER_SERVICE_REASON)]
         while providers:
             curr, reason = providers.pop()
             providers.extend(get_provider_dependencies(curr))
@@ -425,8 +456,7 @@ class CapabilityServer(object):
         capability = req.capability
         if capability not in self.__capability_instances:
             raise RuntimeError("No Capability '{0}' running".format(capability))
-        self.__capability_instances[capability].stopped()
-        self.__stop_capability(req.capability)
+        self.__stop_capability(capability)
         return StopCapabilityResponse(True)
 
     def handle_reload_request(self, req):

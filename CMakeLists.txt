@@ -8,10 +8,12 @@ catkin_python_setup()
 add_message_files(FILES
     Capability.msg
     CapabilityEvent.msg
+    CapabilitySpec.msg
     RunningCapability.msg
 )
 
 add_service_files(FILES
+    GetCapabilitySpecs.srv
     GetInterfaces.srv
     GetProviders.srv
     GetSemanticInterfaces.srv

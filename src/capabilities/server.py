@@ -53,6 +53,8 @@ import rospy
 from std_srvs.srv import Empty
 from std_srvs.srv import EmptyResponse
 
+from capabilities.srv import GetCapabilitySpecs
+from capabilities.srv import GetCapabilitySpecsResponse
 from capabilities.srv import GetInterfaces
 from capabilities.srv import GetInterfacesResponse
 from capabilities.srv import GetProviders
@@ -76,6 +78,7 @@ from capabilities.launch_manager import LaunchManager
 
 from capabilities.msg import Capability
 from capabilities.msg import CapabilityEvent
+from capabilities.msg import CapabilitySpec
 from capabilities.msg import RunningCapability
 
 USER_SERVICE_REASON = 'user service call'
@@ -251,6 +254,10 @@ class CapabilityServer(object):
         self.__running_capabilities = rospy.Service(
             'get_running_capabilities', GetRunningCapabilities,
             self.handle_get_running_capabilities)
+
+        self.__capability_specs = rospy.Service(
+            'get_capability_specs', GetCapabilitySpecs,
+            self.handle_get_capability_specs)
 
         rospy.Subscriber(
             'events', CapabilityEvent, self.handle_capability_events)
@@ -429,8 +436,8 @@ class CapabilityServer(object):
 
     def __load_capabilities(self):
         package_index = package_index_from_package_path(self.__package_paths)
-        spec_file_index = spec_file_index_from_package_index(package_index)
-        spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+        self.spec_file_index = spec_file_index_from_package_index(package_index)
+        spec_index, errors = spec_index_from_spec_file_index(self.spec_file_index)
         if errors:
             rospy.logerr("Errors were encountered loading capabilities:")
             for error in errors:
@@ -442,6 +449,17 @@ class CapabilityServer(object):
                 else:
                     rospy.logerr("  " + str(type(error)) + ": " + str(error))
         self.__spec_index = spec_index
+
+    def handle_get_capability_specs(self, req):
+        rospy.loginfo("Servicing request for capability specs...")
+        response = GetCapabilitySpecsResponse()
+        for package_name, package_dict in self.spec_file_index.items():
+            for spec_type in ['capability_interface', 'semantic_capability_interface', 'capability_provider']:
+                for path in package_dict[spec_type]:
+                    with open(path, 'r') as f:
+                        raw = f.read()
+                        response.capability_specs.append(CapabilitySpec(package_name, spec_type, raw))
+        return response
 
     def handle_start_capability(self, req):
         msg = "Request to start capability '{0}'".format(req.capability)

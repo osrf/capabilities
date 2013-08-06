@@ -80,16 +80,23 @@ You can use this API as follows, assuming workspace of
 
 import os
 
+import rospy
+
 from catkin_pkg.packages import find_packages
 
 from capabilities.specs.interface import capability_interface_from_file_path
+from capabilities.specs.interface import capability_interface_from_string
 from capabilities.specs.interface import InvalidInterface
 
 from capabilities.specs.provider import capability_provider_from_file_path
+from capabilities.specs.provider import capability_provider_from_string
 from capabilities.specs.provider import InvalidProvider
 
 from capabilities.specs.semantic_interface import semantic_capability_interface_from_file_path
+from capabilities.specs.semantic_interface import semantic_capability_interface_from_string
 from capabilities.specs.semantic_interface import InvalidSemanticInterface
+
+from capabilities.srv import GetCapabilitySpecs
 
 
 class DuplicateNameException(Exception):
@@ -181,6 +188,43 @@ def spec_file_index_from_package_index(package_index):
     return spec_file_index
 
 
+def _spec_loader(spec_thing_index, spec_thing_loaders):
+    spec_index = SpecIndex()
+    errors = []
+    error_types = (
+        InterfaceNameNotFoundException,
+        DuplicateNameException,
+        InvalidInterface,
+        InvalidSemanticInterface,
+        InvalidProvider
+    )
+    # First load and process CapabilityInterface's
+    for package_name, package_dict in spec_thing_index.items():
+        interface_things = package_dict['capability_interface']
+        for thing in interface_things:
+            try:
+                spec_thing_loaders['capability_interface'](thing, package_name, spec_index)
+            except error_types as e:
+                errors.append(e)
+    # Then load the SemanticCapabilityInterface's
+    for package_name, package_dict in spec_thing_index.items():
+        semantic_interface_things = package_dict['semantic_capability_interface']
+        for thing in semantic_interface_things:
+            try:
+                spec_thing_loaders['semantic_capability_interface'](thing, package_name, spec_index)
+            except error_types as e:
+                errors.append(e)
+    # Finally load the CapabilityProvider's
+    for package_name, package_dict in spec_thing_index.items():
+        capability_provider_things = package_dict['capability_provider']
+        for thing in capability_provider_things:
+            try:
+                spec_thing_loaders['capability_provider'](thing, package_name, spec_index)
+            except error_types as e:
+                errors.append(e)
+    return spec_index, errors
+
+
 def spec_index_from_spec_file_index(spec_file_index):
     """Builds a :py:class:`SpecIndex` from a spec file index
 
@@ -203,43 +247,63 @@ def spec_index_from_spec_file_index(spec_file_index):
     :rtype: :py:class:`SpecIndex`, :py:obj:`list`
     :raises DuplicateNameException: when two interfaces have the same name
     """
-    spec_index = SpecIndex()
-    errors = []
-    error_types = (
-        InterfaceNameNotFoundException,
-        DuplicateNameException,
-        InvalidInterface,
-        InvalidSemanticInterface,
-        InvalidProvider
-    )
-    # First load and process CapabilityInterface's
-    for package_name, package_dict in spec_file_index.items():
-        interface_paths = package_dict['capability_interface']
-        for path in interface_paths:
-            try:
-                interface = capability_interface_from_file_path(path)
-                spec_index.add_interface(interface, path, package_name)
-            except error_types as e:
-                errors.append(e)
-    # Then load the SemanticCapabilityInterface's
-    for package_name, package_dict in spec_file_index.items():
-        semantic_interface_paths = package_dict['semantic_capability_interface']
-        for path in semantic_interface_paths:
-            try:
-                si = semantic_capability_interface_from_file_path(path)
-                spec_index.add_semantic_interface(si, path, package_name)
-            except error_types as e:
-                errors.append(e)
-    # Finally load the CapabilityProvider's
-    for package_name, package_dict in spec_file_index.items():
-        capability_provider_paths = package_dict['capability_provider']
-        for path in capability_provider_paths:
-            try:
-                provider = capability_provider_from_file_path(path)
-                spec_index.add_provider(provider, path, package_name)
-            except error_types as e:
-                errors.append(e)
-    return spec_index, errors
+    def capability_interface_loader(path, package_name, spec_index):
+        interface = capability_interface_from_file_path(path)
+        spec_index.add_interface(interface, path, package_name)
+
+    def semantic_capability_loader(path, package_name, spec_index):
+        si = semantic_capability_interface_from_file_path(path)
+        spec_index.add_semantic_interface(si, path, package_name)
+
+    def capability_provider_loader(path, package_name, spec_index):
+        provider = capability_provider_from_file_path(path)
+        spec_index.add_provider(provider, path, package_name)
+
+    return _spec_loader(spec_file_index, {
+        'capability_interface': capability_interface_loader,
+        'semantic_capability_interface': semantic_capability_loader,
+        'capability_provider': capability_provider_loader
+    })
+
+
+def spec_index_from_service():
+    """Builds a :py:class:`SpecIndex` by calling a ROS service to get the specs
+
+    Works just like :py:func:`spec_index_from_spec_file_index`, except the raw
+    spec files are retreived over a service call rather than from disk.
+
+    :raises: :py:class:`rospy.ServiceException` when the service call fails
+    """
+    rospy.wait_for_service('get_capability_specs')
+    get_capability_specs = rospy.ServiceProxy('get_capability_specs', GetCapabilitySpecs)
+    response = get_capability_specs()
+    spec_raw_index = {}
+    for spec in response.capability_specs:
+        package_dict = spec_raw_index.get(spec.package, {
+            'capability_interface': [],
+            'semantic_capability_interface': [],
+            'capability_provider': []
+        })
+        package_dict[spec.type].append(spec.content)
+        spec_raw_index[spec.package] = package_dict
+
+    def capability_interface_loader(raw, package_name, spec_index):
+        interface = capability_interface_from_string(raw)
+        spec_index.add_interface(interface, 'service call', package_name)
+
+    def semantic_capability_loader(raw, package_name, spec_index):
+        si = semantic_capability_interface_from_string(raw)
+        spec_index.add_semantic_interface(si, 'service call', package_name)
+
+    def capability_provider_loader(raw, package_name, spec_index):
+        provider = capability_provider_from_string(raw)
+        spec_index.add_provider(provider, 'service call', package_name)
+
+    return _spec_loader(spec_raw_index, {
+        'capability_interface': capability_interface_loader,
+        'semantic_capability_interface': semantic_capability_loader,
+        'capability_provider': capability_provider_loader
+    })
 
 
 class SpecIndex(object):

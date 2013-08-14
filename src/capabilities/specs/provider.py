@@ -37,8 +37,10 @@
 This module implements the Capability Provider concept
 
 This module contains free functions which serve as factories for the :py:class:`CapabilityProvider` class.
-These factories can take the spec file for a Capability Provider and create a :py:class:`CapabilityProvider` instance out of it.
-The :py:class:`CapabilityProvider` class is designed to encapsualte the meta data which describes the Capability Provider.
+These factories can take the spec file for a Capability Provider and create a
+:py:class:`CapabilityProvider` instance out of it.
+The :py:class:`CapabilityProvider` class is designed to encapsualte the meta data
+which describes the Capability Provider.
 
 With a provider spec like this::
 

@@ -52,7 +52,9 @@ You can use this API as follows, assuming workspace of
                  'capability_provider': ['test/discovery_workspaces/minimal/minimal/providers/minimal.yaml',
                                          'test/discovery_workspaces/minimal/minimal/providers/specific_minimal.yaml'],
                  'package': <catkin_pkg.package.Package object at 0x10c13e3e8>,
-                 'semantic_capability_interface': ['test/discovery_workspaces/minimal/minimal/interfaces/SpecificMinimal.yaml']}}
+                 'semantic_capability_interface': [
+                    'test/discovery_workspaces/minimal/minimal/interfaces/SpecificMinimal.yaml'
+                 ]}}
 
     >>> spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
     >>> print(errors)

@@ -37,7 +37,8 @@
 This module implements the Semantic Capability Interface concept
 
 This module contains free functions which serve as factories for the :py:class:`SemanticCapabilityInterface` class.
-These factories can take the spec file for a Semantic Capability Interface and create a :py:class:`SemanticCapabilityInterface` instance out of it.
+These factories can take the spec file for a Semantic Capability Interface and create a
+:py:class:`SemanticCapabilityInterface` instance out of it.
 The :py:class:`SemanticCapabilityInterface` class encapsulates meta information about the semantic interface.
 The :py:class:`SemanticCapabilityInterface` class defines of:
 

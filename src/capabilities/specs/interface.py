@@ -37,10 +37,13 @@
 This module implements the Capability Interface concept
 
 This module contains free functions which serve as factories for the :py:class:`CapabilityInterface` class.
-These factories can take the spec file for a Capability Interface and create a :py:class:`CapabilityInterface` instance out of it.
+These factories can take the spec file for a Capability Interface and create a
+:py:class:`CapabilityInterface` instance out of it.
 The :py:class:`Interface` class encapsulates the interface itself, representing the topics, services, params, etc...
-The :py:class:`CapabilityInterface` class encapsulates meta information about the Interface like the name, description, and extends the :py:class:`Interface` class.
-The :py:class:`Interface` class is made up of :py:class:`InterfaceElement`'s which represent the elements of a Capability Interface, each consisting of a name, type, and description.
+The :py:class:`CapabilityInterface` class encapsulates meta information about the Interface like the name,
+description, and extends the :py:class:`Interface` class.
+The :py:class:`Interface` class is made up of :py:class:`InterfaceElement`'s which represent
+the elements of a Capability Interface, each consisting of a name, type, and description.
 
 With an Interface RGBCamera.yaml, like this::
 

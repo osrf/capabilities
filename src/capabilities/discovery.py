@@ -82,23 +82,16 @@ You can use this API as follows, assuming workspace of
 
 import os
 
-import rospy
-
 from catkin_pkg.packages import find_packages
 
 from capabilities.specs.interface import capability_interface_from_file_path
-from capabilities.specs.interface import capability_interface_from_string
 from capabilities.specs.interface import InvalidInterface
 
 from capabilities.specs.provider import capability_provider_from_file_path
-from capabilities.specs.provider import capability_provider_from_string
 from capabilities.specs.provider import InvalidProvider
 
 from capabilities.specs.semantic_interface import semantic_capability_interface_from_file_path
-from capabilities.specs.semantic_interface import semantic_capability_interface_from_string
 from capabilities.specs.semantic_interface import InvalidSemanticInterface
-
-from capabilities.srv import GetCapabilitySpecs
 
 
 class DuplicateNameException(Exception):
@@ -262,46 +255,6 @@ def spec_index_from_spec_file_index(spec_file_index):
         spec_index.add_provider(provider, path, package_name)
 
     return _spec_loader(spec_file_index, {
-        'capability_interface': capability_interface_loader,
-        'semantic_capability_interface': semantic_capability_loader,
-        'capability_provider': capability_provider_loader
-    })
-
-
-def spec_index_from_service():
-    """Builds a :py:class:`SpecIndex` by calling a ROS service to get the specs
-
-    Works just like :py:func:`spec_index_from_spec_file_index`, except the raw
-    spec files are retreived over a service call rather than from disk.
-
-    :raises: :py:class:`rospy.ServiceException` when the service call fails
-    """
-    rospy.wait_for_service('get_capability_specs')
-    get_capability_specs = rospy.ServiceProxy('get_capability_specs', GetCapabilitySpecs)
-    response = get_capability_specs()
-    spec_raw_index = {}
-    for spec in response.capability_specs:
-        package_dict = spec_raw_index.get(spec.package, {
-            'capability_interface': [],
-            'semantic_capability_interface': [],
-            'capability_provider': []
-        })
-        package_dict[spec.type].append(spec.content)
-        spec_raw_index[spec.package] = package_dict
-
-    def capability_interface_loader(raw, package_name, spec_index):
-        interface = capability_interface_from_string(raw)
-        spec_index.add_interface(interface, 'service call', package_name)
-
-    def semantic_capability_loader(raw, package_name, spec_index):
-        si = semantic_capability_interface_from_string(raw)
-        spec_index.add_semantic_interface(si, 'service call', package_name)
-
-    def capability_provider_loader(raw, package_name, spec_index):
-        provider = capability_provider_from_string(raw)
-        spec_index.add_provider(provider, 'service call', package_name)
-
-    return _spec_loader(spec_raw_index, {
         'capability_interface': capability_interface_loader,
         'semantic_capability_interface': semantic_capability_loader,
         'capability_provider': capability_provider_loader

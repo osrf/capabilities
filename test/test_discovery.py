@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import sys
+
 try:
     import os
 
@@ -58,4 +60,4 @@ try:
 except ImportError as e:
     if 'rospy' not in str(e) and 'No module named srv' not in str(e):
         raise
-    print("Skipping test_discovery.py because ROS depenencies not imported: " + str(e))
+    print("Skipping test_discovery.py because ROS depenencies not imported: " + str(e), file=sys.stderr)

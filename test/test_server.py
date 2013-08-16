@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import sys
+
 try:
     from .common import assert_raises, assert_raises_regex, redirected_stdio, environment
 
@@ -27,4 +29,4 @@ try:
 except ImportError as e:
     if 'rospy' not in str(e) and 'No module named srv' not in str(e):
         raise
-    print("Skipping test_server.py because ROS depenencies not imported: " + str(e))
+    print("Skipping test_server.py because ROS depenencies not imported: " + str(e), file=sys.stderr)

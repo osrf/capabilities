@@ -16,7 +16,7 @@ def check_interface(sci):
 def check_front(sci):
     assert 'FrontRGBCamera' == sci.name, "FrontRGBCamera != {0}".format(sci.name)
     assert 'This is semantically the Front RGB camera.' in sci.description
-    assert 'RGBCamera' == sci.redefines
+    assert 'a_package/RGBCamera' == sci.redefines, sci.redefines
     assert 'front_camera' == sci.global_namespace
     str(sci.remappings)
     check_interface(sci)
@@ -38,6 +38,9 @@ test_files_map = {
     'NoSpecType.yaml': [None, si.InvalidSemanticInterface, 'No spec type specified'],
     'NoRedefines.yaml': [None, si.InvalidSemanticInterface, 'No redefined capability specified'],
     'Version2Spec.yaml': [None, si.InvalidSemanticInterface, 'Invalid spec version'],
+    'InvalidRemappingType.yaml': [None, si.InvalidSemanticInterface, 'Invalid remapping type'],
+    'DictRedefines.yaml': [None, si.InvalidSemanticInterface, 'Invalid redefines, must be a string'],
+    'InvalidRedefinesName.yaml': [None, si.InvalidSemanticInterface, 'Invalid spec name for redefines'],
 }
 
 

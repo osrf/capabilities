@@ -2,4 +2,4 @@
 ---
 name: no_spec_version
 spec_type: provider
-implements: NoSpecVersion
+implements: a_package/NoSpecVersion

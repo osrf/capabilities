@@ -3,9 +3,9 @@
 name: invalid_remapping_duplicate
 spec_version: 1
 spec_type: provider
-implements: Something
+implements: a_package/Something
 depends_on:
-    SomethingElse:
+    'a_package/SomethingElse':
         remappings:
             topics:
                 'foo': 'bar'

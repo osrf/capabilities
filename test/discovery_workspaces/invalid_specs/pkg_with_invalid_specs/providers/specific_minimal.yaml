@@ -3,8 +3,8 @@
 name: specific_minimal
 spec_version: 1
 spec_type: provider
-implements: SpecificMinimal
+implements: pkg_with_invalid_specs/SpecificMinimal
 depends_on:
-    'Minimal':
+    'pkg_with_invalid_specs/Minimal':
         provider:
-            'minimal'
+            'pkg_with_invalid_specs/minimal'

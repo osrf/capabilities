@@ -2,4 +2,4 @@
 ---
 name: NoSpecType
 spec_version: 1
-redefines: 'SomethingElse'
+redefines: 'a_package/SomethingElse'

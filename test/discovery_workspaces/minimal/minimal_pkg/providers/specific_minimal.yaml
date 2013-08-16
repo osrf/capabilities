@@ -3,8 +3,8 @@
 name: specific_minimal
 spec_version: 1
 spec_type: provider
-implements: SpecificMinimal
+implements: minimal_pkg/SpecificMinimal
 depends_on:
-    'Minimal':
+    'minimal_pkg/Minimal':
         provider:
-            'minimal'
+            'minimal_pkg/minimal'

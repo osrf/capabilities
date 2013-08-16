@@ -3,4 +3,4 @@
 name: SpecificMinimal
 spec_version: 1
 spec_type: semantic_interface
-redefines: 'Minimal'
+redefines: 'minimal_pkg/Minimal'

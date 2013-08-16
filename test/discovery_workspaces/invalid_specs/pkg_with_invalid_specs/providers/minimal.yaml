@@ -2,5 +2,5 @@
 ---
 name: minimal
 spec_version: 1
-implements: Minimal
+implements: pkg_with_invalid_specs/Minimal
 launch_file: 'launch/minimal.launch'

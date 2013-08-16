@@ -3,5 +3,5 @@
 name: minimal
 spec_version: 1
 spec_type: provider
-implements: Minimal
+implements: pkg_with_duplicate_names/Minimal
 launch_file: 'launch/minimal.launch'

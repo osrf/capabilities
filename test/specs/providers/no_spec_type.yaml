@@ -2,4 +2,4 @@
 ---
 name: no_spec_type
 spec_version: 1
-implements: NoSpecType
+implements: a_package/NoSpecType

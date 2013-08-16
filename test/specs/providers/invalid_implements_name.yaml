@@ -1,0 +1,6 @@
+%YAML 1.1
+---
+name: invalid_implements_name
+spec_version: 1
+spec_type: provider
+implements: InvalidImplementsName

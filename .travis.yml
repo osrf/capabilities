@@ -8,8 +8,7 @@ install:
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update
-  - rosdep install --from-paths . --ignore-src --rosdistro hydro -y
-  - sudo apt-get install ros-hydro-geometry-msgs
+  - sudo apt-get install ros-hydro-roslaunch ros-hydro-rospy ros-hydro-std-msgs ros-hydro-geometry-msgs ros-hydro-message-generation ros-hydro-message-runtime
 # command to run tests
 script:
   - nosetests -s --tests test --with-coverage --cover-package capabilities

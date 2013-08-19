@@ -1,0 +1,23 @@
+language: python
+python:
+  - "2.7"
+  - "3.2"
+# command to install dependencies
+install:
+  - pip install nose coverage pep8
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
+  - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+  - sudo apt-get update
+  - rosdep install --from-paths . --ignore-src --rosdistro hydro -y
+  - sudo apt-get install ros-hydro-geometry-msgs
+# command to run tests
+script:
+  - nosetests -s --tests test --with-coverage --cover-package capabilities
+  - mkdir build
+  - cd build
+  - source /opt/ros/hydro/setup.bash
+  - cmake ..
+  - make
+  - make run_tests
+notifications:
+  email: false

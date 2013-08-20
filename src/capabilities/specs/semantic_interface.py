@@ -47,7 +47,7 @@ The :py:class:`SemanticCapabilityInterface` class defines of:
 - A global namespace (optional)
 - Any ROS Name remappings (optional)
 
-With an Semantic Capability Interface RectifiedRGBCamera.yaml, like this::
+With an Semantic Capability Interface FrontRGBCamera.yaml, like this::
 
     %YAML 1.1
     ---
@@ -55,7 +55,7 @@ With an Semantic Capability Interface RectifiedRGBCamera.yaml, like this::
     spec_version: 1
     spec_type: semantic_interface
     description: 'This is semantically the Front RGB camera.'
-    redefines: 'RGBCamera'
+    redefines: 'a_package/RGBCamera'
     # First the global_namespace is applied to all ROS Names
     global_namespace: 'front_camera'
     # Then individual remappings are done, and override the global_namespace
@@ -70,9 +70,9 @@ You can use this interface like so::
 
     >>> from pprint import pprint
     >>> from capabilities.specs.semantic_interface import semantic_capability_interface_from_file_path
-    >>> sci = semantic_capability_interface_from_file_path('test/specs/semantic_interfaces/RectifiedRGBCamera.yaml')
+    >>> sci = semantic_capability_interface_from_file_path('test/specs/semantic_interfaces/FrontRGBCamera.yaml')
     >>> print(sci.redefines)
-    RGBCamera
+    a_package/RGBCamera
     >>> print(sci.global_namespace)
     front_camera
     >>> pprint(sci.remappings)
@@ -86,6 +86,8 @@ from __future__ import print_function
 
 import os
 import yaml
+
+from capabilities.specs.common import validate_spec_name
 
 from capabilities.specs.remappings import RemapCollection
 
@@ -143,15 +145,15 @@ def semantic_capability_interface_from_string(string, file_name='<string>'):
 
 
 def semantic_capability_interface_from_dict(spec, file_name='<dict>'):
-    """Creates a CapabilityInterface instance from a dict version of the spec
+    """Creates a SemanticCapabilityInterface instance from a dict version of the spec
 
-    :param string: Capability Interface spec
+    :param string: Semantic Capability Interface spec
     :type string: dict
     :param file_name: Name of the file where this spec originated (defaults to '<dict>')
     :type file_name: str
-    :returns: CapabilityInterface instance, populated with the provided spec
-    :rtype: :py:class:`CapabilityInterface`
-    :raises: :py:exc:`InvalidInterface` if the spec is not complete or has invalid entries
+    :returns: SemanticCapabilityInterface instance, populated with the provided spec
+    :rtype: :py:class:`SemanticCapabilityInterface`
+    :raises: :py:exc:`InvalidSemanticInterface` if the spec is not complete or has invalid entries
     """
     if 'spec_type' not in spec:
         raise InvalidSemanticInterface('No spec type specified', file_name)
@@ -169,16 +171,26 @@ def semantic_capability_interface_from_dict(spec, file_name='<dict>'):
     if 'redefines' not in spec:
         raise InvalidSemanticInterface("No redefined capability specified", file_name)
     redefines = spec['redefines']
+    try:
+        if isinstance(redefines, basestring):
+            validate_spec_name(redefines)
+        else:
+            raise InvalidSemanticInterface("Invalid redefines, must be a string", file_name)
+    except (ValueError, AssertionError) as exc:
+        raise InvalidSemanticInterface("Invalid spec name for redefines: " + str(exc), file_name)
     global_namespace = spec.get('global_namespace', None)
     description = spec.get('description', 'No description given.')
-    semantic_capability_interface = SemanticCapabilityInterface(
-        name,
-        redefines,
-        spec_version,
-        description,
-        global_namespace
-    )
-    semantic_capability_interface.add_remappings_by_dict(spec.get('remappings', {}))
+    try:
+        semantic_capability_interface = SemanticCapabilityInterface(
+            name,
+            redefines,
+            spec_version,
+            description,
+            global_namespace
+        )
+        semantic_capability_interface.add_remappings_by_dict(spec.get('remappings', {}))
+    except (AssertionError, ValueError) as exc:
+        raise InvalidSemanticInterface(str(exc), file_name)
     return semantic_capability_interface
 
 

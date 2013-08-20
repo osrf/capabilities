@@ -2,8 +2,6 @@ from __future__ import print_function
 
 import os
 
-from .common import assert_raises
-
 from capabilities import discovery
 from capabilities.discovery import package_index_from_package_path
 from capabilities.discovery import spec_file_index_from_package_index
@@ -18,15 +16,18 @@ def test_load_minimal():
     package_index = package_index_from_package_path(workspaces)
     spec_file_index = spec_file_index_from_package_index(package_index)
     spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
-    assert not errors
-    expected = sorted(['Minimal', 'minimal', 'SpecificMinimal', 'specific_minimal'])
+    assert not errors, errors
+    expected = sorted([
+        'minimal_pkg/Minimal',
+        'minimal_pkg/minimal',
+        'minimal_pkg/SpecificMinimal',
+        'minimal_pkg/specific_minimal'
+    ])
     assert sorted(spec_index.specs.keys()) == expected
-    assert spec_index.get_containing_package_name('Minimal') == 'minimal_pkg'
-    with assert_raises(RuntimeError):
-        spec_index.get_containing_package_name('NotASpecName')
-    assert sorted(spec_index.provider_names) == ['minimal', 'specific_minimal']
-    assert 'minimal' in spec_index.provider_paths
-    assert 'SpecificMinimal' in spec_index.semantic_interface_paths
+    assert sorted(spec_index.provider_names) == ['minimal_pkg/minimal', 'minimal_pkg/specific_minimal']
+    assert 'minimal_pkg/Minimal' in spec_index.interface_paths
+    assert 'minimal_pkg/minimal' in spec_index.provider_paths
+    assert 'minimal_pkg/SpecificMinimal' in spec_index.semantic_interface_paths
 
 
 def test_load_invalid_specs():

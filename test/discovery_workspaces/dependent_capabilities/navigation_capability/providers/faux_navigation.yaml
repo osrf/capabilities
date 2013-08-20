@@ -4,8 +4,8 @@ name: faux_navigation
 spec_version: 1
 spec_type: provider
 description: 'Implements the ability to navigate.'
-implements: Navigation
+implements: navigation_capability/Navigation
 launch_file: 'launch/faux_navigation.launch'
 depends_on:
-    'DifferentialMobileBase':
-        provider: 'faux_differential_mobile_base'
+    'differential_mobile_base_capability/DifferentialMobileBase':
+        provider: 'differential_mobile_base_capability/faux_differential_mobile_base'

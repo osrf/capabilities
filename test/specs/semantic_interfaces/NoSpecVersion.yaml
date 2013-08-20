@@ -2,4 +2,4 @@
 ---
 name: NoSpecVersion
 spec_type: semantic_interface
-redefines: 'SomethingElse'
+redefines: 'a_package/SomethingElse'

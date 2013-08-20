@@ -33,7 +33,7 @@ This is equivalent to running a roscore and then this:
 $ capability_server `rospack find capabilities`/test/discovery_workspaces/minimal
 ```
 
-This starts the capability server which crawls the `ROS_PACKAGE_PATH` and looks for packages which export capabilities. In this case it should find the `minimal` package in the `test/discovery_workspaces` folder. You can look at the `package.xml` of `minimal` to see how it defines its capabilities:
+This starts the capability server which crawls the `ROS_PACKAGE_PATH` and looks for packages which export capabilities. In this case it should find the `minimal_pkg` package in the `test/discovery_workspaces` folder. You can look at the `package.xml` of `minimal_pkg` to see how it defines its capabilities:
 
 ```xml
 <?xml version="1.0"?>
@@ -57,7 +57,7 @@ This starts the capability server which crawls the `ROS_PACKAGE_PATH` and looks 
 </package>
 ```
 
-It defines one capability interface, `Minimal`, and a semantic interface called `SpecificMinimal`. It also provides a capability provider for each of those interfaces. Looking at the `Minimal` interface spec file:
+It defines one capability interface, `minimal_pkg/Minimal`, and a semantic interface called `minimal_pkg/SpecificMinimal`. It also provides a capability provider for each of those interfaces. Looking at the `minimal_pkg/Minimal` interface spec file:
 
 ```yaml
 %YAML 1.1
@@ -70,7 +70,7 @@ interface: {}
 
 It basically fills out only the explicitly required fields (it's minimal after all).
 
-You can also take a look at the `minimal` provider:
+You can also take a look at the `minimal_pkg/minimal` provider:
 
 ```yaml
 %YAML 1.1
@@ -78,11 +78,11 @@ You can also take a look at the `minimal` provider:
 name: minimal
 spec_version: 1
 spec_type: provider
-implements: Minimal
+implements: minimal_pkg/Minimal
 launch_file: 'launch/minimal.launch'
 ```
 
-You can see that this provider specifies that it implements the `Minimal` interface, and it has a launch file, which is specified relatively from the `minimal` spec file. This launch file simply runs a dummy script:
+You can see that this provider specifies that it implements the `minimal_pkg/Minimal` interface, and it has a launch file, which is specified relatively from the `minimal_pkg/minimal` spec file. This launch file simply runs a dummy script:
 
 ```xml
 <launch>
@@ -138,29 +138,29 @@ You can list the available interfaces:
 
 ```bash
 $ rosservice call /get_interfaces
-interfaces: ['Minimal']
+interfaces: ['minimal_pkg/Minimal']
 ```
 
 You can also list the providers for an interface:
 
 ```bash
 $ rosservice call /get_providers Minimal
-providers: ['minimal']
+providers: ['minimal_pkg/minimal']
 ```
 
 Start one with this command line:
 
 ```bash
-$ rosservice call /start_capability Minimal minimal
+$ rosservice call /start_capability minimal_pkg/Minimal minimal_pkg/minimal
 successful: True
 ```
 
-This is telling the capability server to start the `Minimal` capability, preferring the `minimal` provider.
+This is telling the capability server to start the `minimal_pkg/Minimal` capability, preferring the `minimal_pkg/minimal` provider.
 
 You can switch back to the `capability_server` and see that it is printing the message to the screen. After 10 seconds this node should shutdown normally, but you will get an error message like this:
 
 ```
-[INFO] [WallTime: 1374023441.816336] Request to start capability 'Minimal' with provider 'minimal'
+[INFO] [WallTime: 1374023441.816336] Request to start capability 'minimal_pkg/Minimal' with provider 'minimal_pkg/minimal'
 ... logging to /Users/william/.ros/log/901417f8-ee7d-11e2-9b39-542696cef915/roslaunch-dosa-90541.log
 Checking log directory for disk usage. This may take awhile.
 Press Ctrl-C to interrupt
@@ -198,8 +198,8 @@ all processes on machine have died, roslaunch will exit
 shutting down processing monitor...
 ... shutting down processing monitor complete
 done
-[ERROR] [WallTime: 1374023453.342853] Capability Instance 'minimal' terminated unexpectedly, it was previously in the 'running' state.
-[INFO] [WallTime: 1374023453.343502] Capability Provider 'minimal' for Capability 'Minimal' has terminated.
+[ERROR] [WallTime: 1374023453.342853] Capability Instance 'minimal_pkg/minimal' terminated unexpectedly, it was previously in the 'running' state.
+[INFO] [WallTime: 1374023453.343502] Capability Provider 'minimal_pkg/minimal' for Capability 'minimal_pkg/Minimal' has terminated.
 ```
 
 This is because from the `capability_server`'s perspective the launch file it ran shutdown unexpectedly. This is normal for this launch file, but probably an error for most launch files which are designed to run forever, until stopped.
@@ -209,21 +209,21 @@ This is because from the `capability_server`'s perspective the launch file it ra
 If you run the capability again:
 
 ```bash
-$ rosservice call /start_capability Minimal minimal
+$ rosservice call /start_capability minimal_pkg/Minimal minimal_pkg/minimal
 successful: True
 ```
 
 And then within 10 seconds call:
 
 ```bash
-$ rosservice call /stop_capability Minimal
+$ rosservice call /stop_capability minimal_pkg/Minimal
 successful: True
 ```
 
-The `capability_server` will preempt the provider currently running for the `Minimal` interface, if one is running. In this case we just launched the `minimal` provider so it will be shutdown prematurely:
+The `capability_server` will preempt the provider currently running for the `minimal_pkg/Minimal` interface, if one is running. In this case we just launched the `minimal_pkg/minimal` provider so it will be shutdown prematurely:
 
 ```
-[INFO] [WallTime: 1374018047.353614] Request to start capability 'Minimal' with provider 'minimal'
+[INFO] [WallTime: 1374018047.353614] Request to start capability 'minimal_pkg/Minimal' with provider 'minimal_pkg/minimal'
 ... logging to /Users/william/.ros/log/dc556d54-ee70-11e2-b171-542696cef915/roslaunch-dosa-89740.log
 Checking log directory for disk usage. This may take awhile.
 Press Ctrl-C to interrupt
@@ -253,12 +253,12 @@ process[minimal-1]: started with pid [89763]
 [INFO] [WallTime: 1374018053.430748] hello world 1374018053.43
 [INFO] [WallTime: 1374018054.432479] hello world 1374018054.43
 [INFO] [WallTime: 1374018055.433698] hello world 1374018055.43
-[INFO] [WallTime: 1374018055.752547] Request to stop capability 'Minimal'
+[INFO] [WallTime: 1374018055.752547] Request to stop capability 'minimal_pkg/Minimal'
 [minimal-1] killing on exit
 shutting down processing monitor...
 ... shutting down processing monitor complete
 done
-[INFO] [WallTime: 1374018056.651382] Capability Provider 'minimal' for Capability 'Minimal' has terminated.
+[INFO] [WallTime: 1374018056.651382] Capability Provider 'minimal_pkg/minimal' for Capability 'minimal_pkg/Minimal' has terminated.
 ```
 
 These are the basics, more details about the specifications and chaining capabilities in the future.

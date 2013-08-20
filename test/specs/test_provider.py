@@ -16,13 +16,13 @@ def check_interface(cp):
 def check_navigation(cp):
     assert 'navigation_nav_stack' == cp.name, "navigation_nav_stack != {0}".format(cp.name)
     assert 'ability to navigate' in cp.description
-    assert cp.implements == 'Navigation'
+    assert cp.implements == 'navigation/Navigation', cp.implements
     assert cp.launch_file == 'launch/navigation_nav_stack.launch'
-    assert cp.depends_on('LaserObservation')
-    str(cp.dependencies['LaserObservation'])
-    assert 'scan' in cp.dependencies['LaserObservation'].remappings
-    assert 'nav_stack/scan' == cp.dependencies['LaserObservation'].remappings['scan']
-    assert 'hokuyo_base' == cp.dependencies['LaserObservation'].provider
+    assert cp.depends_on('laser_capability/LaserObservation'), cp.dependencies
+    str(cp.dependencies['laser_capability/LaserObservation'])
+    assert 'scan' in cp.dependencies['laser_capability/LaserObservation'].remappings
+    assert 'nav_stack/scan' == cp.dependencies['laser_capability/LaserObservation'].remappings['scan']
+    assert 'hokuyo_capability/hokuyo_base' == cp.dependencies['laser_capability/LaserObservation'].provider
     with assert_raises_regex(AttributeError, "can't set attribute"):
         cp.dependencies = {'SomeInterface': {}}
     check_interface(cp)
@@ -49,6 +49,7 @@ test_files_map = {
     'no_spec_version.yaml': [None, provider.InvalidProvider, 'No spec version specified'],
     'no_spec_type.yaml': [None, provider.InvalidProvider, 'No spec type specified'],
     'version_2_spec.yaml': [None, provider.InvalidProvider, 'Invalid spec version'],
+    'invalid_implements_name.yaml': [None, provider.InvalidProvider, 'Invalid spec name for implements'],
 }
 
 

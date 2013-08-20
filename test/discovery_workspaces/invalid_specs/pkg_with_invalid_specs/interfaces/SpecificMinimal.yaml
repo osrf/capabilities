@@ -2,4 +2,5 @@
 ---
 spec_version: 1
 spec_type: semantic_interface
-redefines: 'Minimal'
+name: SpecificMinimal
+redefines: 'pkg_with_invalid_specs/Minimal'

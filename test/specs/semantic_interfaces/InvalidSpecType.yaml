@@ -3,4 +3,4 @@
 name: InvalidSpecType
 spec_version: 1
 spec_type: semantic_interface_typo
-redefines: 'SomethingElse'
+redefines: 'a_package/SomethingElse'

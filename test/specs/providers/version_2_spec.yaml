@@ -3,4 +3,4 @@
 name: version_2_spec
 spec_version: 2
 spec_type: provider
-implements: Version2Spec
+implements: a_package/Version2Spec

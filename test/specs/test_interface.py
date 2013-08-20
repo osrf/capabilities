@@ -42,7 +42,7 @@ def check_rgbcamera(ci):
 
 
 def check_minimal(ci):
-    assert 'Minimal' == ci.name
+    assert 'Minimal' == ci.name, ci.name
     assert 'No description given.' in ci.description
     check_interface(ci)
 

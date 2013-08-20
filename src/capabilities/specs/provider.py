@@ -50,31 +50,32 @@ With a provider spec like this::
     spec_version: 1
     spec_type: provider
     description: 'Implements the ability to navigate.'
-    implements: Navigation
+    implements: navigation/Navigation
     launch_file: 'launch/navigation_nav_stack.launch'
     depends_on:
-        LaserObservation:
+        'laser_capability/LaserObservation':
             remappings:
                 topics:
                     'scan': 'nav_stack/scan'
-            provider: 'hokuyo_base'
+            provider: 'hokuyo_capability/hokuyo_base'
 
 You can use this API like this::
 
     >>> from pprint import pprint
     >>> from capabilities.specs.provider import capability_provider_from_file_path
-    >>> cp = capability_provider_from_file_path('test/specs/interfaces/navigation_nav_stack.yaml')
+    >>> cp = capability_provider_from_file_path('test/specs/providers/navigation_nav_stack.yaml')
     >>> pprint(cp.dependencies)
-    {'LaserObservation': <capabilities.specs.provider.DependsOnRelationship object at 0x1092c9150>}
-    >>> print(cp.dependencies['LaserObservation'])
-    LaserObservation:
+    {<capabilities.specs.common.SpecName object at 0x1099ebfd0>:
+        <capabilities.specs.provider.DependsOnRelationship object at 0x109a3fa50>}
+    >>> print(cp.dependencies['laser_capability/LaserObservation'])
+    laser_capability/LaserObservation:
     remappings:
       'scan' -> 'nav_stack/scan'
-    preferred provider: hokuyo_base
+    preferred provider: hokuyo_capability/hokuyo_base
     >>> print(cp.launch_file)
     launch/navigation_nav_stack.launch
     >>> print(cp.implements)
-    Navigation
+    navigation/Navigation
 
 """
 
@@ -82,6 +83,8 @@ from __future__ import print_function
 
 import os
 import yaml
+
+from capabilities.specs.common import validate_spec_name
 
 from capabilities.specs.remappings import RemapCollection
 
@@ -165,6 +168,10 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
     if 'implements' not in spec:
         raise InvalidProvider("No implements specified", file_name)
     implements = spec['implements']
+    try:
+        validate_spec_name(implements)
+    except (ValueError, AssertionError) as exc:
+        raise InvalidProvider("Invalid spec name for implements: " + str(exc), file_name)
     launch_file = spec.get('launch_file', None)
     description = spec.get('description', 'No description given.')
     capability_provider = CapabilityProvider(name, spec_version, implements, launch_file, description)
@@ -239,6 +246,9 @@ class DependsOnRelationship(object):
     valid_remapping_types = ['topics', 'services', 'parameters', 'actions']
 
     def __init__(self, capability_name, preferred_provider):
+        validate_spec_name(capability_name)
+        if preferred_provider is not None:
+            validate_spec_name(preferred_provider)
         self.name = capability_name
         self.capability_name = capability_name
         self.provider = preferred_provider

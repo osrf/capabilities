@@ -4,7 +4,7 @@ name: FrontRGBCamera
 spec_version: 1
 spec_type: semantic_interface
 description: 'This is semantically the Front RGB camera.'
-redefines: 'RGBCamera'
+redefines: 'a_package/RGBCamera'
 # First the global_namespace is applied to all ROS Names
 global_namespace: 'front_camera'
 # Then individual remappings are done, and override the global_namespace

@@ -12,6 +12,9 @@
     <capability_interface>
       interfaces/Minimal.yaml
     </capability_interface>
+    <capability_interface>
+      interfaces/Minimal_dup.yaml
+    </capability_interface>
     <capability_provider>
       providers/minimal.yaml
     </capability_provider>

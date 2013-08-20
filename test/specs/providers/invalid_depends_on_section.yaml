@@ -3,6 +3,6 @@
 name: invalid_remapping
 spec_version: 1
 spec_type: provider
-implements: Something
+implements: a_package/Something
 depends_on:
     - foo

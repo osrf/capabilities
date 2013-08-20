@@ -46,30 +46,38 @@ You can use this API as follows, assuming workspace of
     >>> from capabilities.discovery import spec_index_from_spec_file_index
     >>> workspaces = ['test/discovery_workspaces/minimal']
     >>> package_index = package_index_from_package_path(workspaces)
-    >>> spec_file_index = spec_file_index_from_packages_dict(package_index)
+    >>> spec_file_index = spec_file_index_from_package_index(package_index)
     >>> pprint(spec_file_index)
-    {'minimal': {'capability_interface': ['test/discovery_workspaces/minimal/minimal/interfaces/Minimal.yaml'],
-                 'capability_provider': ['test/discovery_workspaces/minimal/minimal/providers/minimal.yaml',
-                                         'test/discovery_workspaces/minimal/minimal/providers/specific_minimal.yaml'],
-                 'package': <catkin_pkg.package.Package object at 0x10c13e3e8>,
-                 'semantic_capability_interface': [
-                    'test/discovery_workspaces/minimal/minimal/interfaces/SpecificMinimal.yaml'
-                 ]}}
+    {'minimal_pkg': {
+        'capability_interface': ['test/discovery_workspaces/minimal/minimal_pkg/interfaces/Minimal.yaml'],
+        'capability_provider': [
+            'test/discovery_workspaces/minimal/minimal_pkg/providers/minimal.yaml',
+            'test/discovery_workspaces/minimal/minimal_pkg/providers/specific_minimal.yaml'],
+        'package': <catkin_pkg.package.Package object at 0x10bb28df8>,
+        'semantic_capability_interface': [
+            'test/discovery_workspaces/minimal/minimal_pkg/interfaces/SpecificMinimal.yaml']}}
 
     >>> spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
     >>> print(errors)
     []
     >>> spec_index.names
-    ['Minimal', 'specific_minimal', 'minimal', 'SpecificMinimal']
+    [minimal_pkg/specific_minimal,
+     minimal_pkg/Minimal,
+     minimal_pkg/SpecificMinimal,
+     minimal_pkg/minimal]
     >>> pprint(spec_index.specs)
-    {'Minimal': <capabilities.specs.interface.CapabilityInterface object at 0x10b7e3410>,
-     'SpecificMinimal': <capabilities.specs.semantic_interface.SemanticCapabilityInterface object at 0x10b7bf3d0>,
-     'minimal': <capabilities.specs.provider.CapabilityProvider object at 0x10b7bf750>,
-     'specific_minimal': <capabilities.specs.provider.CapabilityProvider object at 0x10b7bfd10>}
+    {minimal_pkg/minimal:
+        <capabilities.specs.provider.CapabilityProvider object at 0x10391ce50>,
+     minimal_pkg/specific_minimal:
+        <capabilities.specs.provider.CapabilityProvider object at 0x10391cd10>,
+     minimal_pkg/Minimal:
+        <capabilities.specs.interface.CapabilityInterface object at 0x103952f90>,
+     minimal_pkg/SpecificMinimal:
+        <capabilities.specs.semantic_interface.SemanticCapabilityInterface object at 0x103952b50>}
     >>> spec_index.interface_names
-    ['Minimal']
+    [minimal_pkg/Minimal]
     >>> spec_index.interfaces
-    {'Minimal': <capabilities.specs.interface.CapabilityInterface object at 0x10b7e3410>}
+    {minimal_pkg/Minimal: <capabilities.specs.interface.CapabilityInterface at 0x103952f90>}
     >>> spec_index.interfaces['Minimal']
     <capabilities.specs.interface.CapabilityInterface object at 0x10b7e3410>
     >>> spec_index.semantic_interfaces
@@ -95,16 +103,12 @@ from capabilities.specs.semantic_interface import InvalidSemanticInterface
 
 
 class DuplicateNameException(Exception):
-    def __init__(self, name, colliding_package, existing_package, spec_type):
+    def __init__(self, name, colliding_package, spec_type):
         self.spec_name = name
         self.package = colliding_package
         self.spec_type = spec_type
-        if colliding_package == existing_package:
-            msg = "Spec named '{0}' is defined twice in the '{1}' package."
-            msg = msg.format(name, colliding_package)
-        else:
-            msg = "Spec named '{0}' in the '{1}' package is also defined in the '{2}' package."
-            msg = msg.format(name, colliding_package, existing_package)
+        msg = "Spec named '{0}' is defined twice in the '{1}' package."
+        msg = msg.format(name, colliding_package)
         Exception.__init__(self, msg)
 
 
@@ -274,9 +278,6 @@ class SpecIndex(object):
         if package_name in self.__packages:
             return
         self.__packages.append(package_name)
-        self.__interfaces[package_name] = {}
-        self.__providers[package_name] = {}
-        self.__semantic_interfaces[package_name] = {}
 
     def add_interface(self, interface, file_path, package_name):
         """Add a loaded CapabilityInterface object into the repository
@@ -290,13 +291,13 @@ class SpecIndex(object):
         :type package_name: str
         :raises: :py:exc:`DuplicateNameException` if there is a name collision
         """
-        if interface.name in self.names:
+        interface_name = '{package}/{name}'.format(package=package_name, name=interface.name)
+        if interface_name in self.names:
             raise DuplicateNameException(
-                interface.name, package_name,
-                self.get_containing_package_name(interface.name),
+                interface_name, package_name,
                 'capability_interface')
         self.__add_package(package_name)
-        self.__interfaces[package_name][interface.name] = {
+        self.__interfaces[interface_name] = {
             'path': file_path,
             'instance': interface
         }
@@ -318,19 +319,19 @@ class SpecIndex(object):
         :raises: :py:exc:`InterfaceNameNotFoundException` if the interface which
             this semantic capability interface redefines is not found.
         """
-        if semantic_interface.name in self.names:
+        semantic_interface_name = '{package}/{name}'.format(package=package_name, name=semantic_interface.name)
+        if semantic_interface_name in self.names:
             raise DuplicateNameException(
-                semantic_interface.name, package_name,
-                self.get_containing_package_name(semantic_interface.name),
+                semantic_interface_name, package_name,
                 'semantic_capability_interface')
         if semantic_interface.redefines not in self.interface_names:
             raise InterfaceNameNotFoundException(
                 "Semantic capability interface '{0}' redefines '{1}', but the '{1}' interface was not found."
-                .format(semantic_interface.name, semantic_interface.redefines),
-                semantic_interface.name, package_name,
+                .format(semantic_interface_name, semantic_interface.redefines),
+                semantic_interface_name, package_name,
                 'semantic_capability_interface')
         self.__add_package(package_name)
-        self.__semantic_interfaces[package_name][semantic_interface.name] = {
+        self.__semantic_interfaces[semantic_interface_name] = {
             'path': file_path,
             'instance': semantic_interface
         }
@@ -349,44 +350,28 @@ class SpecIndex(object):
         :raises: :py:exc:`InterfaceNameNotFoundException` if the interface which
             this capability provider implements is not found.
         """
-        if provider.name in self.names:
+        provider_name = '{package}/{name}'.format(package=package_name, name=provider.name)
+        if provider_name in self.names:
             raise DuplicateNameException(
-                provider.name, package_name,
-                self.get_containing_package_name(provider.name),
+                provider_name, package_name,
                 'capability_provider')
         interfaces = (self.interface_names + self.semantic_interface_names)
         if provider.implements not in interfaces:
             raise InterfaceNameNotFoundException(
                 "Capability provider '{0}' implements '{1}', but the '{1}' interface was not found."
-                .format(provider.name, provider.implements),
-                provider.name, package_name,
+                .format(provider_name, provider.implements),
+                provider_name, package_name,
                 'capability_provider')
         self.__add_package(package_name)
-        self.__providers[package_name][provider.name] = {
+        self.__providers[provider_name] = {
             'path': file_path,
             'instance': provider
         }
 
-    def get_containing_package_name(self, spec_name):
-        """Returns the name of the package which contains the given spec
-
-        :param spec_name: name of the spec to search for
-        :type spec_name: str
-        :returns: name of the package containing the spec
-        :rtype: str
-        :raises: :py:exc:`RuntimeError` if the spec name is not found
-        """
-        if spec_name not in self.names:
-            raise RuntimeError("Spec by the name '{0}' not found.".format(spec_name))
-        for spec_dict in [self.__interfaces, self.__semantic_interfaces, self.__providers]:
-            for package_name, package_dict in spec_dict.items():
-                if spec_name in package_dict:
-                    return package_name
-
     @property
     def names(self):
         """list of all names"""
-        return self.specs.keys()
+        return self.interfaces.keys() + self.semantic_interfaces.keys() + self.providers.keys()
 
     @property
     def specs(self):
@@ -401,54 +386,44 @@ class SpecIndex(object):
     @property
     def interface_names(self):
         """list of capability interface names"""
-        return [n for i in self.__interfaces.values() for n in i.keys()]
+        return [n for n in self.__interfaces.keys()]
 
     @property
     def interfaces(self):
         """dict of capability interfaces, keyed by name"""
-        return dict([(n, x['instance'])
-                     for i in self.__interfaces.values() for n, x in i.items()])
+        return dict([(n, x['instance']) for n, x in self.__interfaces.items()])
 
     @property
     def interface_paths(self):
         """dict of capability interface spec paths, keyed by name"""
-        return dict([(n, x['path'])
-                     for i in self.__interfaces.values() for n, x in i.items()])
+        return dict([(n, x['path']) for n, x in self.__interfaces.items()])
 
     @property
     def provider_names(self):
         """list of capability provider names"""
-        return [n for p in self.__providers.values() for n in p.keys()]
+        return [n for n in self.__providers.keys()]
 
     @property
     def providers(self):
         """dict of capability providers, keyed by name"""
-        return dict([(n, x['instance'])
-                    for p in self.__providers.values() for n, x in p.items()])
+        return dict([(n, x['instance']) for n, x in self.__providers.items()])
 
     @property
     def provider_paths(self):
         """dict of capability provider spec paths, keyed by name"""
-        return dict([(n, x['path'])
-                     for i in self.__providers.values() for n, x in i.items()])
+        return dict([(n, x['path']) for n, x in self.__providers.items()])
 
     @property
     def semantic_interface_names(self):
         """list of semantic capability interface names"""
-        return [n
-                for si in self.__semantic_interfaces.values()
-                for n in si.keys()]
+        return [n for n in self.__semantic_interfaces.keys()]
 
     @property
     def semantic_interfaces(self):
         """dict of semantic capability interfaces, keyed by name"""
-        return dict([(n, x['instance'])
-                    for si in self.__semantic_interfaces.values()
-                    for n, x in si.items()])
+        return dict([(n, x['instance']) for n, x in self.__semantic_interfaces.items()])
 
     @property
     def semantic_interface_paths(self):
         """dict of semantic capability interface spec paths, keyed by name"""
-        return dict([(n, x['path'])
-                     for i in self.__semantic_interfaces.values()
-                     for n, x in i.items()])
+        return dict([(n, x['path']) for n, x in self.__semantic_interfaces.items()])

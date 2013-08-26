@@ -1,35 +1,20 @@
-specs Package
-=============
+The Specs Package
+=================
 
-:mod:`interface` Module
------------------------
+The Interface Spec Module
+-------------------------
 
 .. automodule:: capabilities.specs.interface
     :members:
-    :undoc-members:
-    :show-inheritance:
 
-:mod:`provider` Module
-----------------------
+The Provider Spec Module
+------------------------
 
 .. automodule:: capabilities.specs.provider
     :members:
-    :undoc-members:
-    :show-inheritance:
 
-:mod:`remappings` Module
-------------------------
-
-.. automodule:: capabilities.specs.remappings
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`semantic_interface` Module
---------------------------------
+The Semantic Interface Spec Module
+----------------------------------
 
 .. automodule:: capabilities.specs.semantic_interface
     :members:
-    :undoc-members:
-    :show-inheritance:
-

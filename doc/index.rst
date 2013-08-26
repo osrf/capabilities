@@ -19,7 +19,7 @@ Building
 
 Build it in a catkin workspace or build it stand alone:
 
-.. code:: bash
+.. code-block:: bash
 
     $ source /opt/ros/hydro/setup.bash
     $ mkdir build
@@ -33,13 +33,13 @@ Running the Tests
 
 After ``source``'ing the ``setup.bash`` file generated from building you can run nosetests from the source directory:
 
-.. code:: bash
+.. code-block:: bash
 
     $ nosetests --with-coverage --cover-package capabilities -s
 
 This is will report coverage of the non-ROS modules. You can run the rest of the tests by invoking the ``run_tests`` Make target in the build folder:
 
-.. code:: bash
+.. code-block:: bash
 
     $ cd build
     $ make && make run_tests

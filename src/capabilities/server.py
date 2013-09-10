@@ -233,34 +233,34 @@ class CapabilityServer(object):
         self.__load_capabilities()
 
         self.__start_capability_service = rospy.Service(
-            'start_capability', StartCapability, self.handle_start_capability)
+            '~start_capability', StartCapability, self.handle_start_capability)
 
         self.__stop_capability_service = rospy.Service(
-            'stop_capability', StopCapability, self.handle_stop_capability)
+            '~stop_capability', StopCapability, self.handle_stop_capability)
 
         self.__reload_service = rospy.Service(
-            'reload_capabilities', Empty, self.handle_reload_request)
+            '~reload_capabilities', Empty, self.handle_reload_request)
 
         self.__interfaces_service = rospy.Service(
-            'get_interfaces', GetInterfaces, self.handle_get_interfaces)
+            '~get_interfaces', GetInterfaces, self.handle_get_interfaces)
 
         self.__providers_service = rospy.Service(
-            'get_providers', GetProviders, self.handle_get_providers)
+            '~get_providers', GetProviders, self.handle_get_providers)
 
         self.__semantic_interfaces_service = rospy.Service(
-            'get_semantic_interfaces', GetSemanticInterfaces,
+            '~get_semantic_interfaces', GetSemanticInterfaces,
             self.handle_get_semantic_interfaces)
 
         self.__running_capabilities = rospy.Service(
-            'get_running_capabilities', GetRunningCapabilities,
+            '~get_running_capabilities', GetRunningCapabilities,
             self.handle_get_running_capabilities)
 
         self.__capability_specs = rospy.Service(
-            'get_capability_specs', GetCapabilitySpecs,
+            '~get_capability_specs', GetCapabilitySpecs,
             self.handle_get_capability_specs)
 
         rospy.Subscriber(
-            'events', CapabilityEvent, self.handle_capability_events)
+            '~events', CapabilityEvent, self.handle_capability_events)
 
         rospy.loginfo("Capability Server Ready")
 

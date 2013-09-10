@@ -28,6 +28,36 @@ Build it in a catkin workspace or build it stand alone:
     $ make
     $ source ./devel/setup.bash
 
+Building the Documentation
+--------------------------
+
+First you need ``sphinx`` installed, on Ubuntu:
+
+.. code-block:: bash
+
+    $ sudo apt-get install python-sphinx
+
+On other platforms use pip:
+
+.. code-block:: bash
+
+    $ sudo pip install Sphinx
+
+You have to have built the package first, then you mush source the resulting devel or install space:
+
+.. code-block:: bash
+
+    $ source /path/to/space/setup.bash
+
+Then from the capabilities source folder you can build the docs:
+
+.. code-block:: bash
+
+    $ cd docs
+    $ make html
+
+The resulting docs will be generated to ``doc/.build/html/index.html``.
+
 Running the Tests
 -----------------
 

@@ -49,16 +49,21 @@ from capabilities.specs.semantic_interface import semantic_capability_interface_
 from capabilities.discovery import _spec_loader
 
 
-def spec_index_from_service():
+def spec_index_from_service(server_node_name='capability_server'):
     """Builds a :py:class:`SpecIndex` by calling a ROS service to get the specs
 
     Works just like :py:func:`spec_index_from_spec_file_index`, except the raw
     spec files are retreived over a service call rather than from disk.
 
+    :param server_node_name: Name of the capability server's node,
+        default is 'capability_server'
+    :type server_node_name: str
+
     :raises: :py:class:`rospy.ServiceException` when the service call fails
     """
-    rospy.wait_for_service('get_capability_specs')
-    get_capability_specs = rospy.ServiceProxy('get_capability_specs', GetCapabilitySpecs)
+    service_name = '/{0}/get_capability_specs'.format(server_node_name)
+    rospy.wait_for_service(service_name)
+    get_capability_specs = rospy.ServiceProxy(service_name, GetCapabilitySpecs)
     response = get_capability_specs()
     spec_raw_index = {}
     for spec in response.capability_specs:

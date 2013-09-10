@@ -235,7 +235,7 @@ class CapabilityServer(object):
         self.__start_capability_service = rospy.Service(
             'start_capability', StartCapability, self.handle_start_capability)
 
-        self.__start_capability_service = rospy.Service(
+        self.__stop_capability_service = rospy.Service(
             'stop_capability', StopCapability, self.handle_stop_capability)
 
         self.__reload_service = rospy.Service(
@@ -408,8 +408,8 @@ class CapabilityServer(object):
         return instances
 
     def __get_providers_for_interface(self, interface):
-        providers = dict([(p.name, p)
-                          for p in self.__spec_index.providers.values()
+        providers = dict([(n, p)
+                          for n, p in self.__spec_index.providers.items()
                           if p.implements == interface])
         if not providers:
             raise RuntimeError("No providers for Capability '{0}'"
@@ -487,8 +487,8 @@ class CapabilityServer(object):
 
     def handle_get_providers(self, req):
         if req.interface:
-            providers = [p.name
-                         for p in self.__spec_index.providers.values()
+            providers = [n
+                         for n, p in self.__spec_index.providers.items()
                          if p.implements == req.interface]
         else:
             providers = self.__spec_index.provider_names

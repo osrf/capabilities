@@ -31,6 +31,18 @@ Build it in a catkin workspace or build it stand alone:
 Running the Tests
 -----------------
 
+To run the tests you will need the ``nosetests`` and ``coverage`` python packages. On Ubuntu you can get these like this:
+
+.. code-block:: bash
+
+    $ sudo apt-get install python-nose python-coverage
+
+On other platforms you can use ``pip``:
+
+.. code-block:: bash
+
+    $ sudo pip install nose coverage
+
 After ``source``'ing the ``setup.bash`` file generated from building you can run nosetests from the source directory:
 
 .. code-block:: bash

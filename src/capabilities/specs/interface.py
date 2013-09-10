@@ -441,6 +441,7 @@ class InterfaceElement(object):
     - element kind: topic, service, action, parameter, or dynamic_parameter
     - type: topic, service or action type (pkg/msg) or parameter type
     - description: free form description of the element
+
     :raises: :py:exc:`ValueError` if the element kind is invalid
     """
     valid_element_kinds = ['topic', 'service', 'action', 'parameter', 'dynamic_parameter']

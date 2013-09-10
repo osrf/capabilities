@@ -292,6 +292,7 @@ class SpecIndex(object):
         :raises: :py:exc:`DuplicateNameException` if there is a name collision
         """
         interface_name = '{package}/{name}'.format(package=package_name, name=interface.name)
+        interface.name = interface_name
         if interface_name in self.names:
             raise DuplicateNameException(
                 interface_name, package_name,
@@ -320,6 +321,7 @@ class SpecIndex(object):
             this semantic capability interface redefines is not found.
         """
         semantic_interface_name = '{package}/{name}'.format(package=package_name, name=semantic_interface.name)
+        semantic_interface.name = semantic_interface_name
         if semantic_interface_name in self.names:
             raise DuplicateNameException(
                 semantic_interface_name, package_name,
@@ -351,6 +353,7 @@ class SpecIndex(object):
             this capability provider implements is not found.
         """
         provider_name = '{package}/{name}'.format(package=package_name, name=provider.name)
+        provider.name = provider_name
         if provider_name in self.names:
             raise DuplicateNameException(
                 provider_name, package_name,

@@ -20,3 +20,6 @@ script:
   - make run_tests
 notifications:
   email: false
+matrix:
+  allow_failures:
+    - python: "3.2"

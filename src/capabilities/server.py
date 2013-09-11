@@ -44,9 +44,11 @@ to capabilities.
 from __future__ import print_function
 
 import argparse
+import logging
 import os
 import sys
 import threading
+import traceback
 
 import rospy
 
@@ -227,6 +229,7 @@ class CapabilityServer(object):
         self.__graph_lock = threading.Lock()
         self.__capability_instances = {}
         self.__launch_manager = LaunchManager()
+        self.__debug = False
 
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
@@ -262,6 +265,12 @@ class CapabilityServer(object):
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)
 
+        self.__debug = rospy.get_param('~debug', False)
+        if self.__debug:
+            logger = logging.getLogger('rosout')
+            logger.setLevel(logging.DEBUG)
+            rospy.logdebug('Debug messages enabled.')
+
         rospy.loginfo("Capability Server Ready")
 
         rospy.spin()
@@ -269,6 +278,13 @@ class CapabilityServer(object):
     def shutdown(self):
         """Stops the capability server and cleans up any running processes"""
         self.__launch_manager.stop()
+
+    def __catch_and_log(self, func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as exc:
+            rospy.logdebug(traceback.format_exc())
+            rospy.logerr('{0}: {1}'.format(exc.__class__.__name__, str(exc)))
 
     def handle_capability_events(self, event):
         """Callback for handling messages (events) from the /events topic
@@ -278,6 +294,9 @@ class CapabilityServer(object):
         :param event: ROS message encapsulating an event
         :type event: :py:class:`capabilities.msgs.CapabilityEvent`
         """
+        return self.__catch_and_log(self._handle_capability_events, event)
+
+    def _handle_capability_events(self, event):
         # Ignore any publications which we did not send (external publishers)
         if event._connection_header['callerid'] != rospy.get_name():
             return
@@ -451,6 +470,9 @@ class CapabilityServer(object):
         self.__spec_index = spec_index
 
     def handle_get_capability_specs(self, req):
+        return self.__catch_and_log(self._handle_get_capability_specs, req)
+
+    def _handle_get_capability_specs(self, req):
         rospy.loginfo("Servicing request for capability specs...")
         response = GetCapabilitySpecsResponse()
         for package_name, package_dict in self.spec_file_index.items():
@@ -462,6 +484,9 @@ class CapabilityServer(object):
         return response
 
     def handle_start_capability(self, req):
+        return self.__catch_and_log(self._handle_start_capability, req)
+
+    def _handle_start_capability(self, req):
         msg = "Request to start capability '{0}'".format(req.capability)
         if req.preferred_provider:
             msg += " with provider '{0}'".format(req.preferred_provider)
@@ -470,6 +495,9 @@ class CapabilityServer(object):
         return StartCapabilityResponse(ret or False)
 
     def handle_stop_capability(self, req):
+        return self.__catch_and_log(self._handle_stop_capability, req)
+
+    def _handle_stop_capability(self, req):
         rospy.loginfo("Request to stop capability '{0}'".format(req.capability))
         capability = req.capability
         if capability not in self.__capability_instances:
@@ -478,14 +506,23 @@ class CapabilityServer(object):
         return StopCapabilityResponse(True)
 
     def handle_reload_request(self, req):
+        return self.__catch_and_log(self._handle_reload_request, req)
+
+    def _handle_reload_request(self, req):
         rospy.loginfo("Reloading capabilities...")
         self.__load_capabilities()
         return EmptyResponse()
 
     def handle_get_interfaces(self, req):
+        return self.__catch_and_log(self._handle_get_interfaces, req)
+
+    def _handle_get_interfaces(self, req):
         return GetInterfacesResponse(self.__spec_index.interface_names)
 
     def handle_get_providers(self, req):
+        return self.__catch_and_log(self._handle_get_providers, req)
+
+    def _handle_get_providers(self, req):
         if req.interface:
             providers = [n
                          for n, p in self.__spec_index.providers.items()
@@ -495,6 +532,9 @@ class CapabilityServer(object):
         return GetProvidersResponse(providers)
 
     def handle_get_semantic_interfaces(self, req):
+        return self.__catch_and_log(self._handle_get_semantic_interfaces, req)
+
+    def _handle_get_semantic_interfaces(self, req):
         if req.interface:
             sifaces = [si.name
                        for si in self.__spec_index.semantic_interfaces.values()
@@ -504,6 +544,9 @@ class CapabilityServer(object):
         return GetSemanticInterfacesResponse(sifaces)
 
     def handle_get_running_capabilities(self, req):
+        return self.__catch_and_log(self._handle_get_running_capabilities, req)
+
+    def _handle_get_running_capabilities(self, req):
         resp = GetRunningCapabilitiesResponse()
         for instance in self.__capability_instances.values():
             if instance.state not in ['running']:

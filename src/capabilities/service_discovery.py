@@ -72,11 +72,16 @@ def spec_index_from_service(server_node_name='capability_server'):
             'semantic_capability_interface': [],
             'capability_provider': []
         })
-        package_dict[spec.type].append(spec.content)
+        if spec.type == 'capability_interface':
+            package_dict[spec.type].append((spec.content, spec.default_provider))
+        else:
+            package_dict[spec.type].append(spec.content)
         spec_raw_index[spec.package] = package_dict
 
-    def capability_interface_loader(raw, package_name, spec_index):
+    def capability_interface_loader(interface_tuple, package_name, spec_index):
+        raw, default_provider = interface_tuple
         interface = capability_interface_from_string(raw)
+        interface.default_provider = default_provider
         spec_index.add_interface(interface, 'service call', package_name)
 
     def semantic_capability_loader(raw, package_name, spec_index):

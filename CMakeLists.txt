@@ -26,4 +26,8 @@ generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package()
 
+## Install scripts
+install(PROGRAMS scripts/capability_server
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 catkin_add_nosetests(test)

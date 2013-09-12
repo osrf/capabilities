@@ -3,6 +3,10 @@ Capabilities
 
 Implements the concept of capabilities as part of the `appable robot`_. The development of the appable robot is part of the `Robotics-in-Concert (ROCON)`_ project.
 
+Continuous Integration:
+
+.. image:: https://travis-ci.org/osrf/capabilities.png?branch=master   :target: https://travis-ci.org/osrf/capabilities
+
 Please see the documentation located here:
 
 http://ros.org/wiki/capabilities

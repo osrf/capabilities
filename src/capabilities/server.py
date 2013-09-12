@@ -83,6 +83,8 @@ from capabilities.msg import CapabilityEvent
 from capabilities.msg import CapabilitySpec
 from capabilities.msg import RunningCapability
 
+from capabilities.specs.interface import capability_interface_from_string
+
 USER_SERVICE_REASON = 'user service call'
 
 
@@ -230,10 +232,20 @@ class CapabilityServer(object):
         self.__capability_instances = {}
         self.__launch_manager = LaunchManager()
         self.__debug = False
+        self.__default_providers = {}
 
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
+        self.__debug = rospy.get_param('~debug', False)
+        if self.__debug:
+            logger = logging.getLogger('rosout')
+            logger.setLevel(logging.DEBUG)
+            rospy.logdebug('Debug messages enabled.')
+
         self.__load_capabilities()
+
+        # Collect default arguments
+        self.__populate_default_providers()
 
         self.__start_capability_service = rospy.Service(
             '~start_capability', StartCapability, self.handle_start_capability)
@@ -265,12 +277,6 @@ class CapabilityServer(object):
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)
 
-        self.__debug = rospy.get_param('~debug', False)
-        if self.__debug:
-            logger = logging.getLogger('rosout')
-            logger.setLevel(logging.DEBUG)
-            rospy.logdebug('Debug messages enabled.')
-
         rospy.loginfo("Capability Server Ready")
 
         rospy.spin()
@@ -278,6 +284,73 @@ class CapabilityServer(object):
     def shutdown(self):
         """Stops the capability server and cleans up any running processes"""
         self.__launch_manager.stop()
+
+    def __load_capabilities(self):
+        package_index = package_index_from_package_path(self.__package_paths)
+        self.spec_file_index = spec_file_index_from_package_index(package_index)
+        spec_index, errors = spec_index_from_spec_file_index(self.spec_file_index)
+        if errors:
+            rospy.logerr("Errors were encountered loading capabilities:")
+            for error in errors:
+                if type(error) == DuplicateNameException:
+                    rospy.logerr("  DuplicateNameException: " + str(error))
+                elif type(error) == InterfaceNameNotFoundException:
+                    rospy.logerr("  InterfaceNameNotFoundException: " +
+                                 str(error))
+                else:
+                    rospy.logerr("  " + str(type(error)) + ": " + str(error))
+        self.__spec_index = spec_index
+
+    def __populate_default_providers(self):
+        # Collect available interfaces
+        interfaces = self.__spec_index.interface_names
+        for interface in interfaces:
+            # Collect the providers for each interface
+            providers = [n
+                         for n, p in self.__spec_index.providers.items()
+                         if p.implements == interface]
+            if not providers:
+                # If an interface has not providers, ignore it
+                rospy.logwarn("No providers for capability interface '{0}', not checking for default provider."
+                              .format(interface))
+                continue
+            try:
+                # Try to get the default provider from the corresponding ros parameter
+                self.__default_providers[interface] = rospy.get_param('~defaults/' + interface)
+            except KeyError:
+                # No ros parameter set for this capability interface
+                rospy.logerr("No default provider given for capability interface '{0}'. ".format(interface))
+                if len(providers) == 1:
+                    # If there is only one provider, allow it to be the default
+                    rospy.logwarn("'{0}' has only one provider, '{1}', using that as the default."
+                                  .format(interface, providers[0]))
+                    self.__default_providers[interface] = providers[0]
+                else:
+                    # Otherwise we can't decide, abort
+                    rospy.logerr("Could not determine a default provider for capability interface '{0}', aborting."
+                                 .format(interface))
+                    sys.exit(-1)
+            # Make sure the given default provider exists
+            if self.__default_providers[interface] not in self.__spec_index.provider_names:
+                rospy.logerr("Given default provider '{0}' for interface '{1}' does not exist."
+                             .format(self.__default_providers[interface], interface))
+                sys.exit(-1)
+            # Make sure the given provider implements this interface
+            if self.__default_providers[interface] not in providers:
+                rospy.logerr("Given default provider '{0}' does not implment interface '{1}'."
+                             .format(self.__default_providers[interface], interface))
+                sys.exit(-1)
+            # Update the interface object with the default provider
+            self.__spec_index.interfaces[interface].default_provider = self.__default_providers[interface]
+        # Summarize defaults
+        if self.__default_providers:
+            rospy.loginfo("For each available interface, the default provider:")
+            for interface, provider in self.__default_providers.items():
+                rospy.loginfo("'{0}'".format(interface))
+                rospy.loginfo("  => '{0}'".format(provider))
+                rospy.loginfo("")
+        else:
+            rospy.logwarn("No runnable Capabilities loaded.")
 
     def __catch_and_log(self, func, *args, **kwargs):
         try:
@@ -453,22 +526,6 @@ class CapabilityServer(object):
             self.__update_graph()
         return True
 
-    def __load_capabilities(self):
-        package_index = package_index_from_package_path(self.__package_paths)
-        self.spec_file_index = spec_file_index_from_package_index(package_index)
-        spec_index, errors = spec_index_from_spec_file_index(self.spec_file_index)
-        if errors:
-            rospy.logerr("Errors were encountered loading capabilities:")
-            for error in errors:
-                if type(error) == DuplicateNameException:
-                    rospy.logerr("  DuplicateNameException: " + str(error))
-                elif type(error) == InterfaceNameNotFoundException:
-                    rospy.logerr("  InterfaceNameNotFoundException: " +
-                                 str(error))
-                else:
-                    rospy.logerr("  " + str(type(error)) + ": " + str(error))
-        self.__spec_index = spec_index
-
     def handle_get_capability_specs(self, req):
         return self.__catch_and_log(self._handle_get_capability_specs, req)
 
@@ -480,7 +537,18 @@ class CapabilityServer(object):
                 for path in package_dict[spec_type]:
                     with open(path, 'r') as f:
                         raw = f.read()
-                        response.capability_specs.append(CapabilitySpec(package_name, spec_type, raw))
+                        default_provider = ''
+                        # If a capability interface, try to lookup the default provider
+                        if spec_type == 'capability_interface':
+                            ci = capability_interface_from_string(raw, path)
+                            ci.name = '{package}/{name}'.format(package=package_name, name=ci.name)
+                            if ci.name in self.__default_providers:
+                                default_provider = self.__default_providers[ci.name]
+                            else:
+                                rospy.logerr(
+                                    "Capability Interface '{0}' does not have a default provider.".format(ci.name))
+                        cs = CapabilitySpec(package_name, spec_type, raw, default_provider)
+                        response.capability_specs.append(cs)
         return response
 
     def handle_start_capability(self, req):

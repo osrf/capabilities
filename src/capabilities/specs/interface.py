@@ -464,6 +464,7 @@ class CapabilityInterface(Interface):
     - spec_type (str): type of the interface specification (has to be 'interface')
     - spec_version (int): version of the interface specification
     - description (str): free form description of the interface
+    - default_provider (str): name of the default provider for this interface, defaults to 'unknown'
     - interface (:py:class:`Interface`): representation of components which make up the interface
     """
     spec_type = 'interface'
@@ -472,4 +473,5 @@ class CapabilityInterface(Interface):
         self.name = name
         self.spec_version = spec_version
         self.description = description
+        self.default_provider = 'unknown'
         Interface.__init__(self)

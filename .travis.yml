@@ -18,6 +18,7 @@ script:
   - cmake ..
   - make
   - make run_tests
+  - catkin_test_results test_results
 notifications:
   email: false
 matrix:

@@ -25,5 +25,4 @@ matrix:
   allow_failures:
     - python: "3.2"
 after_success:
-  - ls
   - coveralls

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(capabilities)
 
-find_package(catkin REQUIRED COMPONENTS message_generation std_msgs)
+find_package(catkin REQUIRED COMPONENTS message_generation std_msgs std_srvs)
 
 catkin_python_setup()
 
@@ -22,7 +22,7 @@ add_service_files(FILES
     StopCapability.srv
 )
 
-generate_messages(DEPENDENCIES std_msgs)
+generate_messages(DEPENDENCIES std_msgs std_srvs)
 
 catkin_package()
 

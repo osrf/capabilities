@@ -319,7 +319,7 @@ class CapabilityServer(object):
                 self.__default_providers[interface] = rospy.get_param('~defaults/' + interface)
             except KeyError:
                 # No ros parameter set for this capability interface
-                rospy.logerr("No default provider given for capability interface '{0}'. ".format(interface))
+                rospy.logwarn("No default provider given for capability interface '{0}'. ".format(interface))
                 if len(providers) == 1:
                     # If there is only one provider, allow it to be the default
                     rospy.logwarn("'{0}' has only one provider, '{1}', using that as the default."

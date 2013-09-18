@@ -5,8 +5,10 @@ Implements the concept of capabilities as part of the `appable robot`_. The deve
 
 Continuous Integration:
 
-.. image:: https://travis-ci.org/osrf/capabilities.png?branch=master   :target: https://travis-ci.org/osrf/capabilities
-.. image:: https://coveralls.io/repos/osrf/capabilities/badge.png?branch=master :target: https://coveralls.io/r/osrf/capabilities?branch=master
+.. image:: https://travis-ci.org/osrf/capabilities.png?branch=master
+   :target: https://travis-ci.org/osrf/capabilities
+.. image:: https://coveralls.io/repos/osrf/capabilities/badge.png?branch=master
+   :target: https://coveralls.io/r/osrf/capabilities?branch=master
 
 Please see the documentation located here:
 

@@ -1,0 +1,4 @@
+<launch>
+  <test test-name="invalid_specs" pkg="capabilities" type="test_invalid_specs.py"
+        launch-prefix="coverage run --append " />
+</launch>

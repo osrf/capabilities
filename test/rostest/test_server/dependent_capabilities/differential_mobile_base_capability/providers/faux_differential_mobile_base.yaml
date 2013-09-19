@@ -1,0 +1,7 @@
+%YAML 1.1
+---
+name: faux_differential_mobile_base
+spec_version: 1
+spec_type: provider
+implements: differential_mobile_base_capability/DifferentialMobileBase
+launch_file: 'launch/faux_differential_mobile_base.launch'

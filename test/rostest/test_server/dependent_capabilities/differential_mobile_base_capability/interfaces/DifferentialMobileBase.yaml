@@ -1,0 +1,12 @@
+%YAML 1.1
+---
+name: DifferentialMobileBase
+spec_version: 1
+spec_type: interface
+description: 'This interface describes the basic ROS interface for controlling a differential mobile base'
+interface:
+    topics:
+        requires:
+            'cmd_vel':
+                type: 'geometry_msgs/Twist'
+                description: 'Command Velocities to move the base of the robot, only the x component of the linear velocity and the z or yaw component of the angular velocity are used. The units follow REP-0103 (m/s and radians/s)'

@@ -37,6 +37,7 @@
 
 from __future__ import print_function
 
+import copy
 import os
 import subprocess
 import sys
@@ -79,7 +80,7 @@ class LaunchManager(object):
     """Manages multiple launch files which implement capabilities"""
     __roslaunch_exec = which('roslaunch')
 
-    def __init__(self):
+    def __init__(self, quiet=False):
         self.__running_launch_files_lock = threading.Lock()
         with self.__running_launch_files_lock:
             self.__running_launch_files = {}
@@ -88,16 +89,17 @@ class LaunchManager(object):
         self.__event_subscriber = rospy.Subscriber(
             "~events", CapabilityEvent, self.handle_capability_events)
         self.stopping = False
+        self.__quiet = quiet
 
     def stop(self):
         """Stops the launch manager, also stopping any running launch files"""
         if self.stopping:
-            return
+            return  # pragma: no cover
         with self.__running_launch_files_lock:
             # Incase the other thread tried the lock before this thread updated
             # the self.stopping variable, check it again.
             if self.stopping:
-                return
+                return  # pragma: no cover
             self.stopping = True
             for pid in self.__running_launch_files:
                 self.__stop_by_pid(pid)
@@ -149,8 +151,12 @@ class LaunchManager(object):
                 raise RuntimeError("Launch file at '{0}' is already running."
                                    .format(launch_file))
             cmd = [self.__roslaunch_exec, launch_file]
-            proc = subprocess.Popen(
-                cmd)
+            if self.__quiet:
+                env = copy.deepcopy(os.environ)
+                env['PYTHONUNBUFFERED'] = 'x'
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+            else:
+                proc = subprocess.Popen(cmd)
             thread = self.__start_communication_thread(proc)
             msg = CapabilityEvent()
             msg.header.stamp = rospy.Time.now()
@@ -175,10 +181,15 @@ class LaunchManager(object):
                 provider = self.__running_launch_files[proc.pid][2]
             if proc.stdout is not None:
                 while proc.returncode is None:
-                    for line in iter(proc.stdout.readline, ''):
-                        for outputs in self.__outputs:
-                            outputs.write(line)
-            proc.wait()
+                    try:
+                        for line in iter(proc.stdout.readline, ''):
+                            for output in self.__outputs:
+                                output.write(line)
+                    except KeyboardInterrupt:  # pragma: no cover
+                        pass
+                    proc.poll()
+            else:
+                proc.wait()
             msg = CapabilityEvent()
             msg.header.stamp = rospy.Time.now()
             msg.capability = provider.implements
@@ -186,8 +197,9 @@ class LaunchManager(object):
             msg.type = msg.TERMINATED
             msg.pid = proc.pid
             self.__event_publisher.publish(msg)
-        except Exception as e:
-            print(str(e), file=sys.stderr)
+        except Exception as exc:
+            rospy.logerr('{0}: {1}'.format(exc.__class__.__name__, str(exc)))
+            raise
 
 
 assert LaunchManager._LaunchManager__roslaunch_exec is not None, "'roslaunch' executable not found"

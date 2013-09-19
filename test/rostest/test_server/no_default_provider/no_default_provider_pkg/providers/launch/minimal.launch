@@ -1,0 +1,3 @@
+<launch>
+    <node name="minimal" pkg="minimal_pkg" type="minimal.py" output="screen" />
+</launch>

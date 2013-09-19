@@ -30,4 +30,13 @@ catkin_package()
 install(PROGRAMS scripts/capability_server
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-catkin_add_nosetests(test)
+if(CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
+    catkin_add_nosetests(test)
+
+    add_rostest(test/rostest/test_launch_manager/test_launch_manager.test)
+    add_rostest(test/rostest/test_server/test_dependent_capabilities.test)
+    add_rostest(test/rostest/test_server/test_invalid_specs.test)
+    add_rostest(test/rostest/test_server/test_ros_services.test)
+    add_rostest(test/rostest/test_service_discovery/test_spec_index_from_service.test)
+endif()

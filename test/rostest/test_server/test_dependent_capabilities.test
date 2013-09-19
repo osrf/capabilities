@@ -1,0 +1,10 @@
+<launch>
+  <node pkg="capabilities" name="capability_server" type="capability_server" output="screen" required="true"
+        launch-prefix="coverage run --append ">
+    <param name="debug" value="true"/>
+    <env name="ROS_PACKAGE_PATH"
+         value="$(find capabilities)/test/rostest/test_server/dependent_capabilities:$(find capabilities)/test/unit/discovery_workspaces/minimal:$(env ROS_PACKAGE_PATH)" />
+    <param name="defaults/navigation_capability/Navigation" value="navigation_capability/faux_navigation" />
+  </node>
+  <test test-name="dependent_capabilities" pkg="capabilities" type="test_dependent_capabilities.py"/>
+</launch>

@@ -1,2 +1,2 @@
 [run]
-include = src/capabilities*
+include = *src/capabilities*

@@ -1,0 +1,3 @@
+<launch>
+    <node name="faux_base" pkg="differential_mobile_base_capability" type="faux_base.py" output="screen" />
+</launch>

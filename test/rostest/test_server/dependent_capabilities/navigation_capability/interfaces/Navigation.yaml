@@ -1,0 +1,16 @@
+%YAML 1.1
+---
+name: Navigation
+spec_version: 1
+spec_type: interface
+description: 'Describes the minimal interface for interacting with a robot which has the ability to navigate its environment autonomously.'
+interface:
+  topics:
+    requires:
+      'goal':
+        type: 'geometry_msgs/PoseStamped'
+        description: 'Sets the current goal for navigation system'
+    provides:
+      'current_goal':
+        type: 'geometry_msgs/PoseStamped'
+        description: 'This is published by the navigation system to indicate the current target goal, it will be published in the /map tf coordinate frame'

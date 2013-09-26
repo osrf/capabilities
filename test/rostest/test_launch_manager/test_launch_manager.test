@@ -1,0 +1,4 @@
+<launch>
+  <test test-name="launch_manager" pkg="capabilities" type="test_launch_manager.py"
+        launch-prefix="coverage run --append " />
+</launch>

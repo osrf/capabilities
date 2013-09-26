@@ -20,6 +20,7 @@
   <build_depend>message_generation</build_depend>
   <build_depend>roslaunch</build_depend>
   <build_depend>rospy</build_depend>
+  <build_depend>rostest</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>std_srvs</build_depend>
 
@@ -31,6 +32,7 @@
   <run_depend>std_srvs</run_depend>
 
   <test_depend>geometry_msgs</test_depend>
+  <test_depend>rosservice</test_depend>
 
   <export>
     <rosdoc config="rosdoc.yaml"/>

@@ -73,8 +73,6 @@ from capabilities.srv import StopCapabilityResponse
 from capabilities.discovery import package_index_from_package_path
 from capabilities.discovery import spec_file_index_from_package_index
 from capabilities.discovery import spec_index_from_spec_file_index
-from capabilities.discovery import DuplicateNameException
-from capabilities.discovery import InterfaceNameNotFoundException
 
 from capabilities.launch_manager import LaunchManager
 
@@ -192,14 +190,15 @@ class CapabilityInstance(object):
         :returns: True if transition is successful, False otherwise
         :rtype: bool
         """
+        result = True
         if self.state != 'stopping':
             rospy.logerr(
                 "Capability Instance '{0}' ".format(self.name) +
                 "terminated unexpectedly, it was previously in the " +
                 "'{0}' state.".format(self.state))
-            return False
+            result = False
         self.__state = 'terminated'
-        return True
+        return result
 
 
 def get_reverse_depends(name, capability_instances):
@@ -283,6 +282,11 @@ class CapabilityServer(object):
 
     def shutdown(self):
         """Stops the capability server and cleans up any running processes"""
+        for instance in self.__capability_instances.values():  # pragma: no cover
+            if instance.state in ['running', 'launching']:
+                instance.stopped()
+            if instance.state == 'waiting':
+                instance.cancel()
         self.__launch_manager.stop()
 
     def __load_capabilities(self):
@@ -292,13 +296,7 @@ class CapabilityServer(object):
         if errors:
             rospy.logerr("Errors were encountered loading capabilities:")
             for error in errors:
-                if type(error) == DuplicateNameException:
-                    rospy.logerr("  DuplicateNameException: " + str(error))
-                elif type(error) == InterfaceNameNotFoundException:
-                    rospy.logerr("  InterfaceNameNotFoundException: " +
-                                 str(error))
-                else:
-                    rospy.logerr("  " + str(type(error)) + ": " + str(error))
+                rospy.logerr("  " + str(error.__class__.__name__) + ": " + str(error))
         self.__spec_index = spec_index
 
     def __populate_default_providers(self):
@@ -372,17 +370,18 @@ class CapabilityServer(object):
     def _handle_capability_events(self, event):
         # Ignore any publications which we did not send (external publishers)
         if event._connection_header['callerid'] != rospy.get_name():
-            return
+            return  # pragma: no cover
         # Update the capability
         capability = event.capability
         with self.__graph_lock:
-            if capability not in self.__capability_instances:
+            if capability not in self.__capability_instances.keys():
                 rospy.logerr("Unknown capability instance: '{0}'"
                              .format(capability))
                 return
             instance = self.__capability_instances[capability]
             if event.type == event.LAUNCHED:
-                if instance.canceled:
+                if instance.canceled:  # pragma: no cover
+                    # This is defensive programming, it should not happen
                     self.__stop_capability(instance.name)
                 else:
                     instance.launched(event.pid)
@@ -392,8 +391,6 @@ class CapabilityServer(object):
                     "Capability Provider '{0}' for Capability '{1}' "
                     .format(event.provider, event.capability) +
                     "has terminated.")
-            elif event.type == event.STOPPED:
-                self.__capability_instances[capability].stopped()
             # Update the graph
             self.__update_graph()
 
@@ -422,15 +419,17 @@ class CapabilityServer(object):
             if cap.started_by == USER_SERVICE_REASON:
                 # Started by user, do not garbage collect this
                 continue
-            rdepends = get_reverse_depends(cap.name, self.__capability_instances)
+            rdepends = get_reverse_depends(cap.interface, self.__capability_instances)
             if rdepends:
                 # Someone depends on me, do not garbage collect this
+                rospy.logdebug("Keeping the '{0}' provider of the '{1}' interface, ".format(cap.name, cap.interface) +
+                               "because other running capabilities depend on it.")
                 continue
             if cap.state == 'running':
                 rospy.loginfo("Stopping the '{0}' provider of the '{1}' interface, because it has no dependents left."
                               .format(cap.name, cap.interface))
                 self.__stop_capability(cap.interface)
-            elif cap.state == 'waiting':
+            elif cap.state == 'waiting':  # pragma: no cover
                 rospy.loginfo("Canceling the '{0}' provider of the '{1}' interface, because it has no dependents left."
                               .format(cap.name, cap.interface))
                 cap.cancel()
@@ -447,7 +446,7 @@ class CapabilityServer(object):
         for instance in waiting:
             blocking_dependencies = []
             for dependency_name in instance.depends_on:
-                if dependency_name not in self.__capability_instances:
+                if dependency_name not in self.__capability_instances:  # pragma: no cover
                     rospy.logerr(
                         "Inconsistent capability run graph, '{0}' depends on "
                         .format(instance.name) + "'{0}', ".format(dependency_name) +
@@ -474,27 +473,25 @@ class CapabilityServer(object):
         capability.stopped()
         self.__launch_manager.stop_capability_provider(capability.pid)
 
-    def __get_capability_instances_from_provider(self, provider):
-        def get_provider_dependencies(provider):
-            result = []
-            for interface, dep in provider.dependencies.items():
-                provider_name = dep.provider
-                if provider_name is None:
-                    capability = dep.capability
-                    providers = self.__get_providers_for_interface(capability)
-                    provider_name = providers.keys()[0]
-                if provider_name not in self.__spec_index.providers:
-                    raise RuntimeError("Capability Provider '{0}' not found"
-                                       .format(provider_name))
-                dep_provider = self.__spec_index.providers[provider_name]
-                result.append((dep_provider, provider.name))
-            return result
+    def __get_provider_dependencies(self, provider):
+        result = []
+        for interface, dep in provider.dependencies.items():
+            provider_name = dep.provider
+            if provider_name not in self.__spec_index.providers:
+                # This is the case where a provider depends on another interface,
+                # but the preferred provider does not exist
+                raise RuntimeError("Capability Provider '{0}' not found"
+                                   .format(provider_name))
+            dep_provider = self.__spec_index.providers[provider_name]
+            result.append((dep_provider, provider.name))
+        return result
 
+    def __get_capability_instances_from_provider(self, provider):
         instances = []
         providers = [(provider, USER_SERVICE_REASON)]
         while providers:
             curr, reason = providers.pop()
-            providers.extend(get_provider_dependencies(curr))
+            providers.extend(self.__get_provider_dependencies(curr))
             curr_path = self.__spec_index.provider_paths[curr.name]
             instances.append(CapabilityInstance(curr, curr_path, started_by=reason))
         return instances
@@ -542,11 +539,10 @@ class CapabilityServer(object):
                         if spec_type == 'capability_interface':
                             ci = capability_interface_from_string(raw, path)
                             ci.name = '{package}/{name}'.format(package=package_name, name=ci.name)
-                            if ci.name in self.__default_providers:
-                                default_provider = self.__default_providers[ci.name]
+                            if ci.name not in self.__default_providers:
+                                default_provider = ''
                             else:
-                                rospy.logerr(
-                                    "Capability Interface '{0}' does not have a default provider.".format(ci.name))
+                                default_provider = self.__default_providers[ci.name]
                         cs = CapabilitySpec(package_name, spec_type, raw, default_provider)
                         response.capability_specs.append(cs)
         return response
@@ -617,7 +613,7 @@ class CapabilityServer(object):
     def _handle_get_running_capabilities(self, req):
         resp = GetRunningCapabilitiesResponse()
         for instance in self.__capability_instances.values():
-            if instance.state not in ['running']:
+            if instance.state not in ['running']:  # pragma: no cover
                 continue
             running_capability = RunningCapability()
             running_capability.capability = Capability(instance.interface, instance.name)

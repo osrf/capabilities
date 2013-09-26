@@ -2,6 +2,25 @@
 
 import sys
 
+#### HACK until rospy uses the threading module rather than the thread module
+import threading
+
+from rospy.impl import tcpros_service
+
+
+class MyThread(object):
+    def __init__(self):
+        self.__threads_objs = []
+
+    def start_new_thread(self, func, args):
+        t = threading.Thread(target=func, args=args)
+        t.setDaemon(True)
+        t.start()
+        self.__threads_objs.append(t)
+
+tcpros_service._thread = MyThread()
+#### END HACK
+
 from capabilities.server import main
 
 if __name__ == '__main__':

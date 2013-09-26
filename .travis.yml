@@ -7,19 +7,13 @@ install:
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update
-  - sudo apt-get install ros-hydro-roslaunch ros-hydro-rospy ros-hydro-std-msgs ros-hydro-std-srvs ros-hydro-geometry-msgs ros-hydro-message-generation ros-hydro-message-runtime ros-hydro-catkin
+  - sudo apt-get install ros-hydro-roslaunch ros-hydro-rospy ros-hydro-std-msgs ros-hydro-std-srvs ros-hydro-geometry-msgs ros-hydro-message-generation ros-hydro-message-runtime ros-hydro-catkin ros-hydro-rostest ros-hydro-rosservice
 # command to run tests
 script:
-  - nosetests -s --tests test --with-coverage --cover-package capabilities
-  - mkdir build
-  - cd build
   - source /opt/ros/hydro/setup.bash
-  - cmake ..
-  - make
-  - make run_tests
-  - catkin_test_results test_results
+  - make coverage
+  - catkin_test_results /tmp/capabilities_build/test_results
 notifications:
   email: false
 after_success:
-  - cd ..
   - coveralls

@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+name: faux_navigation_invalid_preferred_provider
+spec_version: 1
+spec_type: provider
+description: 'Implements the ability to navigate.'
+implements: navigation_capability/Navigation
+launch_file: 'launch/faux_navigation.launch'
+depends_on:
+    'differential_mobile_base_capability/DifferentialMobileBase':
+        provider: 'differential_mobile_base_capability/does_not_exist'

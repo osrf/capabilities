@@ -102,7 +102,7 @@ class LaunchManager(object):
                 return  # pragma: no cover
             self.stopping = True
             for pid in self.__running_launch_files:
-                self.__stop_by_pid(pid)
+                self.__stop_by_pid(pid)  # pragma: no cover
 
     def __stop_by_pid(self, pid):
         if pid not in self.__running_launch_files:

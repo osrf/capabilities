@@ -347,7 +347,7 @@ class CapabilityServer(object):
                 rospy.loginfo("'{0}'".format(interface))
                 rospy.loginfo("  => '{0}'".format(provider))
                 rospy.loginfo("")
-        else:
+        else:  # pragma: no cover
             rospy.logwarn("No runnable Capabilities loaded.")
 
     def __catch_and_log(self, func, *args, **kwargs):

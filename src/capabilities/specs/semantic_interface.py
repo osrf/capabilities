@@ -213,6 +213,7 @@ class SemanticCapabilityInterface(object):
         self.name = name
         self.redefines = redefines
         self.spec_version = spec_version
+        self.default_provider = 'unknown'
         self.description = description
         self.global_namespace = global_namespace
         self.__remap_collection = RemapCollection()

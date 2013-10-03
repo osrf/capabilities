@@ -82,6 +82,7 @@ from capabilities.msg import CapabilitySpec
 from capabilities.msg import RunningCapability
 
 from capabilities.specs.interface import capability_interface_from_string
+from capabilities.specs.semantic_interface import semantic_capability_interface_from_string
 
 USER_SERVICE_REASON = 'user service call'
 
@@ -301,7 +302,7 @@ class CapabilityServer(object):
 
     def __populate_default_providers(self):
         # Collect available interfaces
-        interfaces = self.__spec_index.interface_names
+        interfaces = self.__spec_index.interface_names + self.__spec_index.semantic_interface_names
         for interface in interfaces:
             # Collect the providers for each interface
             providers = [n
@@ -339,7 +340,10 @@ class CapabilityServer(object):
                              .format(self.__default_providers[interface], interface))
                 sys.exit(-1)
             # Update the interface object with the default provider
-            self.__spec_index.interfaces[interface].default_provider = self.__default_providers[interface]
+            iface = self.__spec_index.interfaces.get(
+                interface,
+                self.__spec_index.semantic_interfaces.get(interface, None))
+            iface.default_provider = self.__default_providers[interface]
         # Summarize defaults
         if self.__default_providers:
             rospy.loginfo("For each available interface, the default provider:")
@@ -536,13 +540,17 @@ class CapabilityServer(object):
                         raw = f.read()
                         default_provider = ''
                         # If a capability interface, try to lookup the default provider
+                        iface = None
                         if spec_type == 'capability_interface':
-                            ci = capability_interface_from_string(raw, path)
-                            ci.name = '{package}/{name}'.format(package=package_name, name=ci.name)
-                            if ci.name not in self.__default_providers:
+                            iface = capability_interface_from_string(raw, path)
+                        if spec_type == 'semantic_capability_interface':
+                            iface = semantic_capability_interface_from_string(raw, path)
+                        if spec_type in ['capability_interface', 'semantic_capability_interface']:
+                            iface.name = '{package}/{name}'.format(package=package_name, name=iface.name)
+                            if iface.name not in self.__default_providers:
                                 default_provider = ''
                             else:
-                                default_provider = self.__default_providers[ci.name]
+                                default_provider = self.__default_providers[iface.name]
                         cs = CapabilitySpec(package_name, spec_type, raw, default_provider)
                         response.capability_specs.append(cs)
         return response

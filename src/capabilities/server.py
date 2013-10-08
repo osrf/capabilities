@@ -523,7 +523,9 @@ class CapabilityServer(object):
             provider = providers.values()[0]
         instances = self.__get_capability_instances_from_provider(provider)
         with self.__graph_lock:
-            self.__capability_instances.update(dict([(x.interface, x) for x in instances]))
+            for x in instances:
+                if x.interface not in self.__capability_instances:
+                    self.__capability_instances[x.interface] = x
             self.__update_graph()
         return True
 

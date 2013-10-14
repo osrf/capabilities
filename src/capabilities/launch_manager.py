@@ -75,10 +75,13 @@ def which(program):
                 return exe_file
     return None
 
+_placeholder_script = os.path.join(os.path.dirname(__file__), 'placeholder_script')
+
 
 class LaunchManager(object):
     """Manages multiple launch files which implement capabilities"""
     __roslaunch_exec = which('roslaunch')
+    __python_exec = which('python')
 
     def __init__(self, quiet=False):
         self.__running_launch_files_lock = threading.Lock()
@@ -145,12 +148,20 @@ class LaunchManager(object):
         """
         if os.path.isfile(provider_path):
             provider_path = os.path.dirname(provider_path)
-        launch_file = os.path.join(provider_path, provider.launch_file)
+        if provider.launch_file is None:
+            launch_file = None
+            rospy.logwarn("Provider '{0}' does not have a launch file, running a placeholder."
+                          .format(provider.name))
+        else:
+            launch_file = os.path.join(provider_path, provider.launch_file)
         with self.__running_launch_files_lock:
-            if launch_file in [x[3] for x in self.__running_launch_files.values()]:
+            if launch_file is not None and launch_file in [x[3] for x in self.__running_launch_files.values()]:
                 raise RuntimeError("Launch file at '{0}' is already running."
                                    .format(launch_file))
-            cmd = [self.__roslaunch_exec, launch_file]
+            if launch_file is None:
+                cmd = [self.__python_exec, _placeholder_script]
+            else:
+                cmd = [self.__roslaunch_exec, launch_file]
             if self.__quiet:
                 env = copy.deepcopy(os.environ)
                 env['PYTHONUNBUFFERED'] = 'x'

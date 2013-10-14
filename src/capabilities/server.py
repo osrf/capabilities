@@ -510,7 +510,7 @@ class CapabilityServer(object):
         return providers
 
     def __start_capability(self, capability, preferred_provider):
-        if capability not in self.__spec_index.interfaces:
+        if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
             raise RuntimeError("Capability '{0}' not found.".format(capability))
         providers = self.__get_providers_for_interface(capability)
         if preferred_provider:

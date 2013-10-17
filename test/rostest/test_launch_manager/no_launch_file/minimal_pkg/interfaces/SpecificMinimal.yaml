@@ -1,0 +1,6 @@
+%YAML 1.1
+---
+name: SpecificMinimal
+spec_version: 1
+spec_type: semantic_interface
+redefines: 'minimal_pkg/Minimal'

@@ -83,7 +83,7 @@ class LaunchManager(object):
     __roslaunch_exec = which('roslaunch')
     __python_exec = which('python')
 
-    def __init__(self, quiet=False):
+    def __init__(self, quiet=False, screen=False):
         self.__running_launch_files_lock = threading.Lock()
         with self.__running_launch_files_lock:
             self.__running_launch_files = {}
@@ -93,6 +93,7 @@ class LaunchManager(object):
             "~events", CapabilityEvent, self.handle_capability_events)
         self.stopping = False
         self.__quiet = quiet
+        self.__screen = screen
 
     def stop(self):
         """Stops the launch manager, also stopping any running launch files"""
@@ -161,7 +162,10 @@ class LaunchManager(object):
             if launch_file is None:
                 cmd = [self.__python_exec, _placeholder_script]
             else:
-                cmd = [self.__roslaunch_exec, launch_file]
+                if self.__screen:
+                    cmd = [self.__roslaunch_exec, '--screen', launch_file]
+                else:
+                    cmd = [self.__roslaunch_exec, launch_file]
             if self.__quiet:
                 env = copy.deepcopy(os.environ)
                 env['PYTHONUNBUFFERED'] = 'x'

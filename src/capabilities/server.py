@@ -55,6 +55,8 @@ import rospy
 from std_srvs.srv import Empty
 from std_srvs.srv import EmptyResponse
 
+from capabilities.srv import GetCapabilitySpec
+from capabilities.srv import GetCapabilitySpecResponse
 from capabilities.srv import GetCapabilitySpecs
 from capabilities.srv import GetCapabilitySpecsResponse
 from capabilities.srv import GetInterfaces
@@ -273,6 +275,10 @@ class CapabilityServer(object):
         self.__capability_specs = rospy.Service(
             '~get_capability_specs', GetCapabilitySpecs,
             self.handle_get_capability_specs)
+
+        self.__capability_spec = rospy.Service(
+            '~get_capability_spec', GetCapabilitySpec,
+            self.handle_get_capability_spec)
 
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)
@@ -556,6 +562,35 @@ class CapabilityServer(object):
                         cs = CapabilitySpec(package_name, spec_type, raw, default_provider)
                         response.capability_specs.append(cs)
         return response
+
+    def handle_get_capability_spec(self, req):
+        return self.__catch_and_log(self._handle_get_capability_spec, req)
+
+    def _handle_get_capability_spec(self, req):
+        rospy.loginfo("Servicing request for get capability spec '{0}'...".format(req.capability_spec))
+        response = GetCapabilitySpecResponse()
+        for package_name, package_dict in self.spec_file_index.items():
+            for spec_type in ['capability_interface', 'semantic_capability_interface', 'capability_provider']:
+                for path in package_dict[spec_type]:
+                    with open(path, 'r') as f:
+                        raw = f.read()
+                        default_provider = ''
+                        # If a capability interface, try to lookup the default provider
+                        iface = None
+                        if spec_type == 'capability_interface':
+                            iface = capability_interface_from_string(raw, path)
+                        if spec_type == 'semantic_capability_interface':
+                            iface = semantic_capability_interface_from_string(raw, path)
+                        if spec_type in ['capability_interface', 'semantic_capability_interface']:
+                            iface.name = '{package}/{name}'.format(package=package_name, name=iface.name)
+                            if iface.name not in self.__default_providers:
+                                default_provider = ''
+                            else:
+                                default_provider = self.__default_providers[iface.name]
+                        if iface and iface.name == req.capability_spec:
+                            response.capability_spec = CapabilitySpec(package_name, spec_type, raw, default_provider)
+                            return response
+        raise RuntimeError("Could not find requested spec '{0}'".format(req.capability_spec))
 
     def handle_start_capability(self, req):
         return self.__catch_and_log(self._handle_start_capability, req)

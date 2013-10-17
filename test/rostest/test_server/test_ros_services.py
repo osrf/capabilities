@@ -85,6 +85,11 @@ class Test(unittest.TestCase):
         si, errors = spec_index_from_service()
         assert not errors
         assert 'minimal_pkg/Minimal' in si.interfaces
+        resp = call_service('/capability_server/get_capability_spec', 'minimal_pkg/Minimal')
+        assert resp.capability_spec.package == 'minimal_pkg', resp.capability_spec.package
+        assert 'name: Minimal' in resp.capability_spec.content, resp.capability_spec.content
+        with assert_raises(ServiceException):
+            resp = call_service('/capability_server/get_capability_spec', 'minimal_pkg/DoesNotExist')
 
     def test_external_event(self):
         # publish even from external rospy instance

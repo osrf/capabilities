@@ -57,6 +57,8 @@ from std_srvs.srv import EmptyResponse
 
 from capabilities.srv import GetCapabilitySpec
 from capabilities.srv import GetCapabilitySpecResponse
+from capabilities.srv import FreeCapability
+from capabilities.srv import FreeCapabilityResponse
 from capabilities.srv import GetCapabilitySpecs
 from capabilities.srv import GetCapabilitySpecsResponse
 from capabilities.srv import GetInterfaces
@@ -71,6 +73,8 @@ from capabilities.srv import StartCapability
 from capabilities.srv import StartCapabilityResponse
 from capabilities.srv import StopCapability
 from capabilities.srv import StopCapabilityResponse
+from capabilities.srv import UseCapability
+from capabilities.srv import UseCapabilityResponse
 
 from capabilities.discovery import package_index_from_package_path
 from capabilities.discovery import spec_file_index_from_package_index
@@ -306,6 +310,12 @@ class CapabilityServer(object):
 
         self.__stop_capability_service = rospy.Service(
             '~stop_capability', StopCapability, self.handle_stop_capability)
+
+        self.__free_capability_service = rospy.Service(
+            '~free_capability', FreeCapability, self.handle_free_capability)
+
+        self.__use_capability_service = rospy.Service(
+            '~use_capability', UseCapability, self.handle_use_capability)
 
         self.__reload_service = rospy.Service(
             '~reload_capabilities', Empty, self.handle_reload_request)
@@ -704,6 +714,18 @@ class CapabilityServer(object):
             raise RuntimeError("No Capability '{0}' running".format(capability))
         self.__stop_capability(capability)
         return StopCapabilityResponse(True)
+
+    def handle_free_capability(self, req):
+        return self.__catch_and_log(self._handle_free_capability, req)
+
+    def _handle_free_capability(self, req):
+        pass
+
+    def handle_use_capability(self, req):
+        return self.__catch_and_log(self._handle_use_capability, req)
+
+    def _handle_use_capability(self, req):
+        pass
 
     def handle_reload_request(self, req):
         return self.__catch_and_log(self._handle_reload_request, req)

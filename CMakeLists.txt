@@ -13,11 +13,12 @@ add_message_files(FILES
 )
 
 add_service_files(FILES
+    GetCapabilitySpec.srv
     GetCapabilitySpecs.srv
     GetInterfaces.srv
     GetProviders.srv
-    GetSemanticInterfaces.srv
     GetRunningCapabilities.srv
+    GetSemanticInterfaces.srv
     StartCapability.srv
     StopCapability.srv
 )

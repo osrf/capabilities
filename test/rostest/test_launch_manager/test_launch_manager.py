@@ -45,6 +45,21 @@ class Test(unittest.TestCase):
             time.sleep(1)  # Allow time for output to be produced
             lm.stop()
 
+    def test_launch_manager_screen(self):
+        with redirected_stdio():
+            workspaces = [os.path.join(TEST_DIR, 'unit', 'discovery_workspaces', 'minimal')]
+            package_index = package_index_from_package_path(workspaces)
+            spec_file_index = spec_file_index_from_package_index(package_index)
+            spec_index, errors = spec_index_from_spec_file_index(spec_file_index)
+            assert not errors, errors
+            provider = 'minimal_pkg/minimal'
+            assert provider in spec_index.providers
+            lm = launch_manager.LaunchManager()
+            lm._LaunchManager__screen = True
+            lm.run_capability_provider(spec_index.providers[provider], spec_index.provider_paths[provider])
+            time.sleep(1)  # Allow time for output to be produced
+            lm.stop()
+
     def test_launch_manager_no_launch_file_provider(self):
         with redirected_stdio():
             workspaces = [os.path.join(THIS_DIR, 'no_launch_file')]

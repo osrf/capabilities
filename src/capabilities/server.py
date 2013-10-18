@@ -227,12 +227,12 @@ class CapabilityServer(object):
     """A class to expose the :py:class:`discovery.SpecIndex` over a ROS API
     """
 
-    def __init__(self, package_paths):
+    def __init__(self, package_paths, screen=None):
         self.__package_paths = package_paths
         self.__spec_index = None
         self.__graph_lock = threading.Lock()
         self.__capability_instances = {}
-        self.__launch_manager = LaunchManager()
+        self.__launch_manager = LaunchManager(screen=bool(rospy.get_param('~use_screen', screen)))
         self.__debug = False
         self.__default_providers = {}
 
@@ -676,6 +676,8 @@ def create_parser():
     add = parser.add_argument
     add('package_path', nargs='?',
         help="Overrides ROS_PACKAGE_PATH when discovering capabilities")
+    add('--screen', '-s', action='store_true', default=False,
+        help="Passes `--screen` down to roslaunch, `use_screen` rosparam takes priority.")
     return parser
 
 
@@ -696,6 +698,6 @@ def main(sysargv=None):
 
     rospy.init_node('capability_server')
 
-    capability_server = CapabilityServer(ros_package_path)
+    capability_server = CapabilityServer(ros_package_path, screen=args.screen)
     capability_server.spin()
     capability_server.shutdown()

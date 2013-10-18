@@ -32,6 +32,7 @@ def check_minimal(cp):
     assert 'minimal' == cp.name
     assert 'No description given.' in cp.description
     check_interface(cp)
+    str(cp)
 
 test_files_map = {
     # 'file': [extra checker function, expected error, expected error regex]

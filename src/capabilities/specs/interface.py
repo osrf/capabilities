@@ -76,7 +76,7 @@ You can use this interface like so::
 
     >>> from pprint import pprint
     >>> from capabilities.specs.interface import capability_interface_from_file_path
-    >>> ci = capability_interface_from_file_path('test/specs/interfaces/RGBCamera.yaml')
+    >>> ci = capability_interface_from_file_path('test/unit/specs/interfaces/RGBCamera.yaml')
     >>> pprint(ci.topics)
     {'camera/camera_info': <capabilities.specs.interface.InterfaceElement object at 0x10736ced0>,
      'camera/image_raw': <capabilities.specs.interface.InterfaceElement object at 0x10736cf10>}
@@ -454,6 +454,16 @@ class InterfaceElement(object):
         self.type = self.element_type = element_type
         self.description = description
 
+    def __str__(self):
+        return """Interface Element:
+{{
+  name: {name},
+  kind: {kind},
+  element type: {element_type}
+  description:
+    {description}
+}}""".format(**self.__dict__)
+
 
 class CapabilityInterface(Interface):
     """Represents a Capability Interface
@@ -475,3 +485,13 @@ class CapabilityInterface(Interface):
         self.description = description
         self.default_provider = 'unknown'
         Interface.__init__(self)
+
+    def __str__(self):
+        return """Capability Interface:
+{{
+  name: {name},
+  spec version: {spec_version},
+  default provider: {default_provider},
+  description:
+    {description}
+}}""".format(**self.__dict__)

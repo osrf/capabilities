@@ -63,7 +63,7 @@ You can use this API like this::
 
     >>> from pprint import pprint
     >>> from capabilities.specs.provider import capability_provider_from_file_path
-    >>> cp = capability_provider_from_file_path('test/specs/providers/navigation_nav_stack.yaml')
+    >>> cp = capability_provider_from_file_path('test/unit/specs/providers/navigation_nav_stack.yaml')
     >>> pprint(cp.dependencies)
     {<capabilities.specs.common.SpecName object at 0x1099ebfd0>:
         <capabilities.specs.provider.DependsOnRelationship object at 0x109a3fa50>}
@@ -232,6 +232,20 @@ class CapabilityProvider(object):
         relationship.add_remappings_by_dict(remappings)
         # The dict strucutre of YAML should prevent duplicate interface_name keys
         self.__depends_on[interface_name] = relationship
+
+    def __str__(self):
+        return """Capability Provider:
+{{
+  name: {name},
+  spec version: {spec_version},
+  implements: {implements},
+  description:
+    {description}
+
+  depend on relationships:
+{depends_on_str}
+}}
+""".format(depends_on_str="[\n" + "\n".join([str(v) for v in self.__depends_on.values()]) + "\n]", **self.__dict__)
 
 
 class DependsOnRelationship(object):

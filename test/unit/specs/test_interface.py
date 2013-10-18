@@ -32,6 +32,7 @@ def check_navigation(ci):
     ci.provided_parameters
     ci.required_parameters
     check_interface(ci)
+    str(ci.topics.values()[0])
 
 
 def check_rgbcamera(ci):
@@ -45,6 +46,7 @@ def check_minimal(ci):
     assert 'Minimal' == ci.name, ci.name
     assert 'No description given.' in ci.description
     check_interface(ci)
+    str(ci)
 
 test_files_map = {
     # 'file': [extra checker function, expected error, expected error regex]

@@ -233,11 +233,11 @@ class SemanticCapabilityInterface(object):
     def __str__(self):
         return """Semantic Capability Interface:
 {{
-  name: {name},
-  spec version: {spec_version},
-  default provider: {default_provider},
-  redefines: {redefines},
-  global namespace: {global_namespace},
+  name: {name}
+  spec version: {spec_version}
+  default provider: {default_provider}
+  redefines: {redefines}
+  global namespace: {global_namespace}
   description:
     {description}
 }}""".format(**self.__dict__)

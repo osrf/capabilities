@@ -455,14 +455,11 @@ class InterfaceElement(object):
         self.description = description
 
     def __str__(self):
-        return """Interface Element:
-{{
-  name: {name},
-  kind: {kind},
-  element type: {element_type}
-  description:
-    {description}
-}}""".format(**self.__dict__)
+        return """name: {name}
+kind: {kind}
+element type: {element_type}
+description:
+  {description}""".format(**self.__dict__)
 
 
 class CapabilityInterface(Interface):
@@ -487,11 +484,37 @@ class CapabilityInterface(Interface):
         Interface.__init__(self)
 
     def __str__(self):
+        elements = "topics:\n"
+        for name, topic in self.topics.items():
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(topic).splitlines())
+            elements += "\n"
+        elements += "    services:\n"
+        for name, service in self.services.items():
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(service).splitlines())
+            elements += "\n"
+        elements += "    actions:\n"
+        for name, action in self.actions.items():
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(action).splitlines())
+            elements += "\n"
+        elements += "    parameters:\n"
+        for name, parameter in self.parameters.items():
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(parameter).splitlines())
+            elements += "\n"
+        elements += "    dynamic parameters:\n"
+        for parameter in self.dynamic_parameters:
+            elements += "\n      " + str(parameter)
+            elements += "\n"
         return """Capability Interface:
 {{
-  name: {name},
-  spec version: {spec_version},
-  default provider: {default_provider},
+  name: {name}
+  spec version: {spec_version}
+  default provider: {default_provider}
   description:
     {description}
-}}""".format(**self.__dict__)
+  elements:
+    {elements}
+}}""".format(elements=elements, **self.__dict__)

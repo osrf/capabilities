@@ -236,9 +236,9 @@ class CapabilityProvider(object):
     def __str__(self):
         return """Capability Provider:
 {{
-  name: {name},
-  spec version: {spec_version},
-  implements: {implements},
+  name: {name}
+  spec version: {spec_version}
+  implements: {implements}
   description:
     {description}
 

@@ -6,6 +6,7 @@ import os
 import sys
 import unittest
 
+import rospy
 import rostest
 
 from capabilities import server
@@ -28,13 +29,22 @@ class Test(unittest.TestCase):
         capability_server._CapabilityServer__populate_default_providers()
         capability_server._CapabilityServer__stop_capability('not_a_running_capability')
 
-    def test_no_default_provider(self):
+    def test_no_default_provider_pedantic(self):
         no_default_provider = os.path.join(TEST_DIR, 'rostest', 'test_server', 'no_default_provider')
         ros_package_path = [no_default_provider]
+        rospy.set_param('~missing_default_provider_is_an_error', True)
         capability_server = server.CapabilityServer(ros_package_path)
         capability_server._CapabilityServer__load_capabilities()
         with assert_raises(SystemExit):
             capability_server._CapabilityServer__populate_default_providers()
+
+    def test_no_default_provider(self):
+        no_default_provider = os.path.join(TEST_DIR, 'rostest', 'test_server', 'no_default_provider')
+        ros_package_path = [no_default_provider]
+        rospy.set_param('~missing_default_provider_is_an_error', False)
+        capability_server = server.CapabilityServer(ros_package_path)
+        capability_server._CapabilityServer__load_capabilities()
+        capability_server._CapabilityServer__populate_default_providers()
 
     def test_invalid_default_provider(self):
         minimal_dir = os.path.join(TEST_DIR, 'unit', 'discovery_workspaces', 'minimal')

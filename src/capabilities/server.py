@@ -235,6 +235,7 @@ class CapabilityServer(object):
         self.__launch_manager = LaunchManager(screen=bool(rospy.get_param('~use_screen', screen)))
         self.__debug = False
         self.__default_providers = {}
+        self.__missing_default_provider_is_an_error = rospy.get_param('~missing_default_provider_is_an_error', False)
 
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
@@ -331,10 +332,15 @@ class CapabilityServer(object):
                                   .format(interface, providers[0]))
                     self.__default_providers[interface] = providers[0]
                 else:
-                    # Otherwise we can't decide, abort
-                    rospy.logerr("Could not determine a default provider for capability interface '{0}', aborting."
-                                 .format(interface))
-                    sys.exit(-1)
+                    # Otherwise we can't decide
+                    if self.__missing_default_provider_is_an_error:
+                        rospy.logerr("Could not determine a default provider for capability interface '{0}', aborting."
+                                     .format(interface))
+                        sys.exit(-1)
+                    else:
+                        rospy.logwarn("Could not determine a default provider for capability interface '{0}'."
+                                      .format(interface))
+                        continue
             # Make sure the given default provider exists
             if self.__default_providers[interface] not in self.__spec_index.provider_names:
                 rospy.logerr("Given default provider '{0}' for interface '{1}' does not exist."

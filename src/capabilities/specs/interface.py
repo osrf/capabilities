@@ -485,24 +485,48 @@ class CapabilityInterface(Interface):
 
     def __str__(self):
         elements = "topics:\n"
-        for name, topic in self.topics.items():
-            elements += "      '" + name + "':\n        "
-            elements += "\n        ".join(str(topic).splitlines())
+        elements += "      requires:\n"
+        for name, topic in self.required_topics.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(topic).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, topic in self.provided_topics.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(topic).splitlines())
             elements += "\n"
         elements += "    services:\n"
-        for name, service in self.services.items():
-            elements += "      '" + name + "':\n        "
-            elements += "\n        ".join(str(service).splitlines())
+        elements += "      requires:\n"
+        for name, service in self.required_services.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(service).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, service in self.provided_services.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(service).splitlines())
             elements += "\n"
         elements += "    actions:\n"
-        for name, action in self.actions.items():
-            elements += "      '" + name + "':\n        "
-            elements += "\n        ".join(str(action).splitlines())
+        elements += "      requires:\n"
+        for name, action in self.required_actions.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(action).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, action in self.provided_actions.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(action).splitlines())
             elements += "\n"
         elements += "    parameters:\n"
-        for name, parameter in self.parameters.items():
-            elements += "      '" + name + "':\n        "
-            elements += "\n        ".join(str(parameter).splitlines())
+        elements += "      requires:\n"
+        for name, parameter in self.required_parameters.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(parameter).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, parameter in self.provided_parameters.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(parameter).splitlines())
             elements += "\n"
         elements += "    dynamic parameters:\n"
         for parameter in self.dynamic_parameters:

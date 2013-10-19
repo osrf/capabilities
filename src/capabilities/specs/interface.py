@@ -485,6 +485,14 @@ class CapabilityInterface(Interface):
 
     def __str__(self):
         elements = "topics:\n"
+        required_and_provided = list(self.required_topics.keys() + self.provided_topics.keys())
+        both = [x for x in self.topics if x not in required_and_provided]
+        for name, topic in self.topics.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(topic).splitlines())
+            elements += "\n"
         elements += "      requires:\n"
         for name, topic in self.required_topics.items():
             elements += "        '" + name + "':\n        "
@@ -496,6 +504,14 @@ class CapabilityInterface(Interface):
             elements += "\n          ".join(str(topic).splitlines())
             elements += "\n"
         elements += "    services:\n"
+        required_and_provided = list(self.required_services.keys() + self.provided_services.keys())
+        both = [x for x in self.services if x not in required_and_provided]
+        for name, service in self.services.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(service).splitlines())
+            elements += "\n"
         elements += "      requires:\n"
         for name, service in self.required_services.items():
             elements += "        '" + name + "':\n        "
@@ -507,6 +523,14 @@ class CapabilityInterface(Interface):
             elements += "\n          ".join(str(service).splitlines())
             elements += "\n"
         elements += "    actions:\n"
+        required_and_provided = list(self.required_actions.keys() + self.provided_actions.keys())
+        both = [x for x in self.actions if x not in required_and_provided]
+        for name, action in self.actions.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(action).splitlines())
+            elements += "\n"
         elements += "      requires:\n"
         for name, action in self.required_actions.items():
             elements += "        '" + name + "':\n        "
@@ -518,6 +542,14 @@ class CapabilityInterface(Interface):
             elements += "\n          ".join(str(action).splitlines())
             elements += "\n"
         elements += "    parameters:\n"
+        required_and_provided = list(self.required_parameters.keys() + self.provided_parameters.keys())
+        both = [x for x in self.parameters if x not in required_and_provided]
+        for name, parameter in self.parameters.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(parameter).splitlines())
+            elements += "\n"
         elements += "      requires:\n"
         for name, parameter in self.required_parameters.items():
             elements += "        '" + name + "':\n        "

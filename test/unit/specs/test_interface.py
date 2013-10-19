@@ -35,6 +35,10 @@ def check_navigation(ci):
     str(ci.topics.values()[0])
 
 
+def check_all_interfaces(ci):
+    str(ci)
+
+
 def check_rgbcamera(ci):
     assert 'RGBCamera' == ci.name, "RGBCamera != {0}".format(ci.name)
     assert 'exposed by a generic RGBCamera' in ci.description
@@ -50,6 +54,7 @@ def check_minimal(ci):
 
 test_files_map = {
     # 'file': [extra checker function, expected error, expected error regex]
+    'AllInterfaces.yaml': [check_all_interfaces, None, None],
     'DoesNotExists.yaml': [None, IOError, 'No such file'],
     'DuplicateAction.yaml': [None, interface.InvalidInterface, 'Interface has action listed twice'],
     'DuplicateDynParameter.yaml': [None, interface.InvalidInterface, 'Interface has dynamic parameter listed twice'],
@@ -65,8 +70,8 @@ test_files_map = {
     'Minimal.yaml': [check_minimal, None, None],
     'Navigation.yaml': [check_navigation, None, None],
     'NoName.yaml': [None, interface.InvalidInterface, 'No name specified'],
-    'NoSpecVersion.yaml': [None, interface.InvalidInterface, 'No spec version specified'],
     'NoSpecType.yaml': [None, interface.InvalidInterface, 'No spec type specified'],
+    'NoSpecVersion.yaml': [None, interface.InvalidInterface, 'No spec version specified'],
     'NoType.yaml': [None, interface.InvalidInterface, 'Topic has no type'],
     'RGBCamera.yaml': [check_rgbcamera, None, None],
     'Version2Spec.yaml': [None, interface.InvalidInterface, 'Invalid spec version'],

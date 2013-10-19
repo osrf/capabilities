@@ -1,0 +1,57 @@
+%YAML 1.1
+---
+name: AllInterfaces
+spec_version: 1
+spec_type: interface
+description: 'Used for coverage.'
+interface:
+  topics:
+    'foo':
+      type: 'ping/pong'
+      description: 'A description'
+    provides:
+      'bar':
+        type: 'ping/pong'
+        description: 'A description'
+    requires:
+      'baz':
+        type: 'ping/pong'
+        description: 'A description'
+  services:
+    'foo':
+      type: 'ping/pong'
+      description: 'A description'
+    provides:
+      'bar':
+        type: 'ping/pong'
+        description: 'A description'
+    requires:
+      'baz':
+        type: 'ping/pong'
+        description: 'A description'
+  actions:
+    'foo':
+      type: 'ping/pong'
+      description: 'A description'
+    provides:
+      'bar':
+        type: 'ping/pong'
+        description: 'A description'
+    requires:
+      'baz':
+        type: 'ping/pong'
+        description: 'A description'
+  parameters:
+    'foo':
+      type: 'ping'
+      description: 'A description'
+    provides:
+      'bar':
+        type: 'ping'
+        description: 'A description'
+    requires:
+      'baz':
+        type: 'ping'
+        description: 'A description'
+  dynamic_parameters:
+    - 'something'

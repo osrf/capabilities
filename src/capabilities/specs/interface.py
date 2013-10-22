@@ -76,7 +76,7 @@ You can use this interface like so::
 
     >>> from pprint import pprint
     >>> from capabilities.specs.interface import capability_interface_from_file_path
-    >>> ci = capability_interface_from_file_path('test/specs/interfaces/RGBCamera.yaml')
+    >>> ci = capability_interface_from_file_path('test/unit/specs/interfaces/RGBCamera.yaml')
     >>> pprint(ci.topics)
     {'camera/camera_info': <capabilities.specs.interface.InterfaceElement object at 0x10736ced0>,
      'camera/image_raw': <capabilities.specs.interface.InterfaceElement object at 0x10736cf10>}
@@ -454,6 +454,13 @@ class InterfaceElement(object):
         self.type = self.element_type = element_type
         self.description = description
 
+    def __str__(self):
+        return """name: {name}
+kind: {kind}
+element type: {element_type}
+description:
+  {description}""".format(**self.__dict__)
+
 
 class CapabilityInterface(Interface):
     """Represents a Capability Interface
@@ -475,3 +482,95 @@ class CapabilityInterface(Interface):
         self.description = description
         self.default_provider = 'unknown'
         Interface.__init__(self)
+
+    def __str__(self):
+        elements = "topics:\n"
+        required_and_provided = list(self.required_topics.keys() + self.provided_topics.keys())
+        both = [x for x in self.topics if x not in required_and_provided]
+        for name, topic in self.topics.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(topic).splitlines())
+            elements += "\n"
+        elements += "      requires:\n"
+        for name, topic in self.required_topics.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(topic).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, topic in self.provided_topics.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(topic).splitlines())
+            elements += "\n"
+        elements += "    services:\n"
+        required_and_provided = list(self.required_services.keys() + self.provided_services.keys())
+        both = [x for x in self.services if x not in required_and_provided]
+        for name, service in self.services.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(service).splitlines())
+            elements += "\n"
+        elements += "      requires:\n"
+        for name, service in self.required_services.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(service).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, service in self.provided_services.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(service).splitlines())
+            elements += "\n"
+        elements += "    actions:\n"
+        required_and_provided = list(self.required_actions.keys() + self.provided_actions.keys())
+        both = [x for x in self.actions if x not in required_and_provided]
+        for name, action in self.actions.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(action).splitlines())
+            elements += "\n"
+        elements += "      requires:\n"
+        for name, action in self.required_actions.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(action).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, action in self.provided_actions.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(action).splitlines())
+            elements += "\n"
+        elements += "    parameters:\n"
+        required_and_provided = list(self.required_parameters.keys() + self.provided_parameters.keys())
+        both = [x for x in self.parameters if x not in required_and_provided]
+        for name, parameter in self.parameters.items():
+            if name not in both:
+                continue
+            elements += "      '" + name + "':\n        "
+            elements += "\n        ".join(str(parameter).splitlines())
+            elements += "\n"
+        elements += "      requires:\n"
+        for name, parameter in self.required_parameters.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(parameter).splitlines())
+            elements += "\n"
+        elements += "      provides:\n"
+        for name, parameter in self.provided_parameters.items():
+            elements += "        '" + name + "':\n        "
+            elements += "\n          ".join(str(parameter).splitlines())
+            elements += "\n"
+        elements += "    dynamic parameters:\n"
+        for parameter in self.dynamic_parameters:
+            elements += "\n      " + str(parameter)
+            elements += "\n"
+        return """Capability Interface:
+{{
+  name: {name}
+  spec version: {spec_version}
+  default provider: {default_provider}
+  description:
+    {description}
+  elements:
+    {elements}
+}}""".format(elements=elements, **self.__dict__)

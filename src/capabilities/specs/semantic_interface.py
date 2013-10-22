@@ -91,6 +91,11 @@ from capabilities.specs.common import validate_spec_name
 
 from capabilities.specs.remappings import RemapCollection
 
+try:
+    __basestring = basestring
+except NameError:  # pragma: no cover
+    __basestring = str
+
 
 class InvalidSemanticInterface(Exception):
     """InvalidSemanticInterface exception"""
@@ -172,7 +177,7 @@ def semantic_capability_interface_from_dict(spec, file_name='<dict>'):
         raise InvalidSemanticInterface("No redefined capability specified", file_name)
     redefines = spec['redefines']
     try:
-        if isinstance(redefines, basestring):
+        if isinstance(redefines, __basestring):
             validate_spec_name(redefines)
         else:
             raise InvalidSemanticInterface("Invalid redefines, must be a string", file_name)
@@ -224,3 +229,15 @@ class SemanticCapabilityInterface(object):
 
     def add_remappings_by_dict(self, remappings_dict):
         self.__remap_collection.add_remappings_by_dict(remappings_dict)
+
+    def __str__(self):
+        return """Semantic Capability Interface:
+{{
+  name: {name}
+  spec version: {spec_version}
+  default provider: {default_provider}
+  redefines: {redefines}
+  global namespace: {global_namespace}
+  description:
+    {description}
+}}""".format(**self.__dict__)

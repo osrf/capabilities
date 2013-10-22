@@ -26,6 +26,7 @@ def check_minimal(sci):
     assert 'Minimal' == sci.name
     assert 'No description given.' in sci.description
     check_interface(sci)
+    str(sci)
 
 test_files_map = {
     # 'file': [extra checker function, expected error, expected error regex]

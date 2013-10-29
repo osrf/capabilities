@@ -13,11 +13,8 @@ add_message_files(FILES
 )
 
 add_service_files(FILES
-<<<<<<< HEAD
     GetCapabilitySpec.srv
-=======
     FreeCapability.srv
->>>>>>> working on reference counting, not done
     GetCapabilitySpecs.srv
     GetInterfaces.srv
     GetProviders.srv

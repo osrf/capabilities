@@ -48,7 +48,7 @@ Typical usage::
 
 import rospy
 
-from bondpy import Bond
+from bondpy.bondpy import Bond
 
 from capabilities.srv import FreeCapability
 from capabilities.srv import UseCapability

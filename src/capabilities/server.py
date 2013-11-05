@@ -93,7 +93,7 @@ USER_SERVICE_REASON = 'user service call'
 from rospy.impl import tcpros_service
 
 
-def custom__handle_request(self, transport, request):
+def custom__handle_request(self, transport, request):  # pragma: no cover
     import struct
     from rospy.impl.tcpros_service import convert_return_to_response
     from rospy.service import ServiceException

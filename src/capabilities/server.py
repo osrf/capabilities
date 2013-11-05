@@ -236,7 +236,9 @@ class CapabilityInstance(object):
                 "'{0}' state.".format(self.state))
             result = False
         self.__state = 'terminated'
-        # TODO: break existing bonds
+        # Break all bonds which are active
+        for bond in self.bonds.values():
+            bond.break_bond()
         return result
 
 

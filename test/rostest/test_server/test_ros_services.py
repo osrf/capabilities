@@ -53,11 +53,14 @@ class Test(unittest.TestCase):
         resp = call_service('/capability_server/get_interfaces')
         assert 'minimal_pkg/Minimal' in resp.interfaces, resp
         # get providers by interface
-        resp = call_service('/capability_server/get_providers', 'minimal_pkg/Minimal')
+        resp = call_service('/capability_server/get_providers', 'minimal_pkg/Minimal', False)
         assert 'minimal_pkg/minimal' in resp.providers, resp
-        assert resp.default_provider == 'minimal_pkg/minimal', resp
+        assert 'minimal_pkg/specific_minimal' not in resp.providers, resp
+        # get providers by interface, include semantic interfaces
+        resp = call_service('/capability_server/get_providers', 'minimal_pkg/Minimal', True)
+        assert 'minimal_pkg/specific_minimal' in resp.providers, resp
         # get all providers
-        resp = call_service('/capability_server/get_providers', '')
+        resp = call_service('/capability_server/get_providers', '', False)
         assert 'minimal_pkg/minimal' in resp.providers, resp
         assert resp.default_provider == '', resp
         # fail to get providers for non-existent interface

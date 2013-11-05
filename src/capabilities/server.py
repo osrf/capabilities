@@ -644,14 +644,28 @@ class CapabilityServer(object):
             instances.append(CapabilityInstance(curr, curr_path, started_by=reason))
         return instances
 
+    def __get_providers_for_interface(self, interface, allow_semantic=False):
+        valid_interfaces = [interface]
+        if allow_semantic:
+            # Add semantic interfaces which redefine this one
+            valid_interfaces.extend(
+                [k for k, v in self.__spec_index.semantic_interfaces.items()
+                 if v.redefines == interface]
+            )
+        providers = dict([(n, p)
+                          for n, p in self.__spec_index.providers.items()
+                          if p.implements in valid_interfaces])
+        if not providers:
+            raise RuntimeError("No providers for Capability '{0}'"
+                               .format(interface))
+        return providers
+
     def __start_capability(self, capability, preferred_provider):
         if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
             raise RuntimeError("Capability '{0}' not found.".format(capability))
         # If no preferred provider is given, use the default
         preferred_provider = preferred_provider or self.__default_providers[capability]
-        providers = dict([(n, p)
-                          for n, p in self.__spec_index.providers.items()
-                          if p.implements == capability])
+        providers = self.__get_providers_for_interface(capability, allow_semantic=True)
         if preferred_provider not in providers:
             raise RuntimeError(
                 "Capability Provider '{0}' not found for Capability '{1}'"
@@ -853,9 +867,7 @@ class CapabilityServer(object):
         if req.interface:
             if req.interface not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
                 raise RuntimeError("Capability Interface '{0}' not found.".format(req.interface))
-            providers = [n
-                         for n, p in self.__spec_index.providers.items()
-                         if p.implements == req.interface]
+            providers = self.__get_providers_for_interface(req.interface, allow_semantic=req.include_semantic).keys()
             default_provider = self.__default_providers[req.interface]
         else:
             providers = self.__spec_index.provider_names

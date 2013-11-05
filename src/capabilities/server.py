@@ -655,7 +655,10 @@ class CapabilityServer(object):
         providers = dict([(n, p)
                           for n, p in self.__spec_index.providers.items()
                           if p.implements in valid_interfaces])
-        return providers  # Could be empty
+        if not providers:
+            raise RuntimeError("No providers for Capability '{0}'"
+                               .format(interface))
+        return providers
 
     def __start_capability(self, capability, preferred_provider):
         if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():

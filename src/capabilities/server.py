@@ -88,6 +88,33 @@ from capabilities.specs.semantic_interface import semantic_capability_interface_
 
 USER_SERVICE_REASON = 'user service call'
 
+## Hack to squelch output from Service call failure ##
+
+from rospy.impl import tcpros_service
+
+
+def custom__handle_request(self, transport, request):
+    import struct
+    from rospy.impl.tcpros_service import convert_return_to_response
+    from rospy.service import ServiceException
+    try:
+        # convert return type to response Message instance
+        response = convert_return_to_response(self.handler(request), self.response_class)
+        self.seq += 1
+        # ok byte
+        transport.write_buff.write(struct.pack('<B', 1))
+        transport.send_message(response, self.seq)
+    except ServiceException as e:
+        rospy.core.rospydebug("handler raised ServiceException: %s" % e)
+        self._write_service_error(transport, "service cannot process request: %s" % e)
+    except Exception as e:
+        # rospy.logerr("Error processing request: %s\n%s" % (e, traceback.print_exc()))
+        self._write_service_error(transport, "error processing request: %s" % e)
+
+tcpros_service.ServiceImpl._handle_request = custom__handle_request
+
+## End hacks ##
+
 
 class CapabilityInstance(object):
     """Encapsulates the state of an instance of a Capability Provider
@@ -372,6 +399,7 @@ class CapabilityServer(object):
         except Exception as exc:
             rospy.logdebug(traceback.format_exc())
             rospy.logerr('{0}: {1}'.format(exc.__class__.__name__, str(exc)))
+            raise
 
     def handle_capability_events(self, event):
         """Callback for handling messages (events) from the /events topic

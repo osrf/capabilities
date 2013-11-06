@@ -151,7 +151,7 @@ class LaunchManager(object):
             provider_path = os.path.dirname(provider_path)
         if provider.launch_file is None:
             launch_file = None
-            rospy.logwarn("Provider '{0}' does not have a launch file, running a placeholder."
+            rospy.loginfo("Provider '{0}' does not have a launch file, running a placeholder."
                           .format(provider.name))
         else:
             launch_file = os.path.join(provider_path, provider.launch_file)

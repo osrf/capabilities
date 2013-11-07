@@ -261,11 +261,23 @@ class CapabilityServer(object):
         self.__capability_instances = {}
         self.__launch_manager = LaunchManager(screen=bool(rospy.get_param('~use_screen', screen)))
         self.__debug = False
+        self.__whitelist = None
+        self.__blacklist = None
         self.__default_providers = {}
         self.__missing_default_provider_is_an_error = rospy.get_param('~missing_default_provider_is_an_error', False)
 
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
+        self.__whitelist = rospy.get_param('~whitelist', None)
+        if not isinstance(self.__whitelist, (list, tuple, type(None))):
+            msg = "~whitelist must be a list or null, got a '{0}'".format(type(self.__whitelist))
+            rospy.logerr(msg)
+            self.__whitelist = None
+        self.__blacklist = rospy.get_param('~blacklist', None)
+        if not isinstance(self.__blacklist, (list, tuple, type(None))):
+            msg = "~blacklist must be a list or null, got a '{0}'".format(type(self.__blacklist))
+            rospy.logerr(msg)
+            self.__blacklist = None
         self.__debug = rospy.get_param('~debug', False)
         if self.__debug:
             logger = logging.getLogger('rosout')
@@ -332,6 +344,24 @@ class CapabilityServer(object):
             rospy.logerr("Errors were encountered loading capabilities:")
             for error in errors:
                 rospy.logerr("  " + str(error.__class__.__name__) + ": " + str(error))
+        removed_interfaces = []
+        for interfaces, remove_func in [
+            (spec_index.interfaces, spec_index.remove_interface),
+            (spec_index.semantic_interfaces, spec_index.remove_semantic_interface)
+        ]:
+            for interface in interfaces.keys():
+                if self.__whitelist and interface not in self.__whitelist:
+                    removed_interfaces.append(interface)
+                    remove_func(interface)
+                    rospy.loginfo("Interface '{0}' is not in the whitelist, skipping.".format(interface))
+                if self.__blacklist and interface in self.__blacklist:
+                    removed_interfaces.append(interface)
+                    remove_func(interface)
+                    rospy.loginfo("Interface '{0}' is in the blacklist, skipping.".format(interface))
+        for interface in removed_interfaces:
+            for provider in spec_index.providers.values():
+                if provider.implements == interface:
+                    spec_index.remove_provider(provider.name)
         self.__spec_index = spec_index
 
     def __populate_default_providers(self):

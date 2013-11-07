@@ -6,6 +6,15 @@
         <env name="ROS_PACKAGE_PATH"
              value="$(find capabilities)/test/unit/discovery_workspaces/$(arg test_case):$(env ROS_PACKAGE_PATH)" />
         <param name="debug" value="true" if="$(arg debug)" />
+        <!-- Uncomment to whitelist things -->
+        <!-- <rosparam param="whitelist">
+            - 'minimal_pkg/Minimal'
+            - 'minimal_pkg/SpecificMinimal'
+        </rosparam> -->
+        <!-- Uncomment to blacklist things -->
+        <!-- <rosparam param="blacklist">
+            - 'minimal_pkg/SpecificMinimal'
+        </rosparam> -->
         <!-- Uncomment below to explicitly set the default provider for minimal_pkg/Minimal -->
         <!-- <param name="defaults/minimal_pkg/Minimal" value="minimal_pkg/minimal" /> -->
     </node>

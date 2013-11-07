@@ -4,6 +4,12 @@
     <param name="debug" value="true"/>
     <env name="ROS_PACKAGE_PATH"
          value="$(find capabilities)/test/unit/discovery_workspaces/minimal:$(find capabilities)/test/rostest/test_server/no_provider:$(env ROS_PACKAGE_PATH)" />
+    <rosparam param="whitelist">
+        'invalid'
+    </rosparam>
+    <rosparam param="blacklist">
+        'invalid'
+    </rosparam>
   </node>
   <test test-name="ros_services" pkg="capabilities" type="test_ros_services.py"/>
 </launch>

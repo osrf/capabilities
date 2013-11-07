@@ -82,6 +82,5 @@ class Test(unittest.TestCase):
         rospy.sleep(1)  # Allow time for the publish to happen
 
 if __name__ == '__main__':
-    import rospy
     rospy.init_node(TEST_NAME, anonymous=True)
     rostest.unitrun('capabilities', TEST_NAME, Test)

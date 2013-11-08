@@ -184,6 +184,13 @@ def spec_file_index_from_package_index(package_index):
             if tag != 'package' and tag in spec_file_index[package_name]:
                 spec_file_path = os.path.join(package_path, export.content)
                 spec_file_index[package_name][tag].append(spec_file_path)
+        # Prune packages with no specs
+        if (
+                not spec_file_index[package_name]['capability_interface']
+            and not spec_file_index[package_name]['capability_provider']
+            and not spec_file_index[package_name]['semantic_capability_interface']
+        ):
+            del spec_file_index[package_name]
     return spec_file_index
 
 

@@ -261,6 +261,8 @@ class CapabilityServer(object):
         self.__capability_instances = {}
         self.__launch_manager = LaunchManager(screen=bool(rospy.get_param('~use_screen', screen)))
         self.__debug = False
+        self.__package_whitelist = None
+        self.__package_blacklist = None
         self.__whitelist = None
         self.__blacklist = None
         self.__default_providers = {}
@@ -268,6 +270,16 @@ class CapabilityServer(object):
 
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
+        self.__package_whitelist = rospy.get_param('~package_whitelist', None)
+        if not isinstance(self.__package_whitelist, (list, tuple, type(None))):
+            msg = "~package_whitelist must be a list or null, got a '{0}'".format(type(self.__whitelist))
+            rospy.logerr(msg)
+            self.__package_whitelist = None
+        self.__package_blacklist = rospy.get_param('~package_blacklist', None)
+        if not isinstance(self.__package_blacklist, (list, tuple, type(None))):
+            msg = "~package_blacklist must be a list or null, got a '{0}'".format(type(self.__whitelist))
+            rospy.logerr(msg)
+            self.__package_blacklist = None
         self.__whitelist = rospy.get_param('~whitelist', None)
         if not isinstance(self.__whitelist, (list, tuple, type(None))):
             msg = "~whitelist must be a list or null, got a '{0}'".format(type(self.__whitelist))
@@ -339,11 +351,21 @@ class CapabilityServer(object):
     def __load_capabilities(self):
         package_index = package_index_from_package_path(self.__package_paths)
         self.spec_file_index = spec_file_index_from_package_index(package_index)
+        # Prune packages by black and white list
+        for package in self.spec_file_index.keys():
+            if self.__package_whitelist and package not in self.__package_whitelist:
+                rospy.loginfo("Package '{0}' not in whitelist, skipping.".format(package))
+                del self.spec_file_index[package]
+            if self.__package_blacklist and package in self.__package_blacklist:
+                rospy.loginfo("Package '{0}' in blacklist, skipping.".format(package))
+                del self.spec_file_index[package]
+        # Generate spec_index from spec file index
         spec_index, errors = spec_index_from_spec_file_index(self.spec_file_index)
         if errors:
             rospy.logerr("Errors were encountered loading capabilities:")
             for error in errors:
                 rospy.logerr("  " + str(error.__class__.__name__) + ": " + str(error))
+        # Prune specific capabilities based on black and white lists
         removed_interfaces = []
         for interfaces, remove_func in [
             (spec_index.interfaces, spec_index.remove_interface),

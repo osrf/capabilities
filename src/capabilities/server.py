@@ -367,19 +367,21 @@ class CapabilityServer(object):
                 rospy.logerr("  " + str(error.__class__.__name__) + ": " + str(error))
         # Prune specific capabilities based on black and white lists
         removed_interfaces = []
-        for interfaces, remove_func in [
+        for specs, remove_func in [
             (spec_index.interfaces, spec_index.remove_interface),
-            (spec_index.semantic_interfaces, spec_index.remove_semantic_interface)
+            (spec_index.semantic_interfaces, spec_index.remove_semantic_interface),
+            (spec_index.providers, spec_index.remove_provider)
         ]:
-            for interface in interfaces.keys():
-                if self.__whitelist and interface not in self.__whitelist:
-                    removed_interfaces.append(interface)
-                    remove_func(interface)
-                    rospy.loginfo("Interface '{0}' is not in the whitelist, skipping.".format(interface))
-                if self.__blacklist and interface in self.__blacklist:
-                    removed_interfaces.append(interface)
-                    remove_func(interface)
-                    rospy.loginfo("Interface '{0}' is in the blacklist, skipping.".format(interface))
+            for spec in specs.keys():
+                if self.__whitelist and spec not in self.__whitelist:
+                    removed_interfaces.append(spec)
+                    remove_func(spec)
+                    rospy.loginfo("Spec '{0}' is not in the whitelist, skipping.".format(spec))
+                if self.__blacklist and spec in self.__blacklist:
+                    removed_interfaces.append(spec)
+                    remove_func(spec)
+                    rospy.loginfo("Spec '{0}' is in the blacklist, skipping.".format(spec))
+        # Remove providers which no longer have an interface
         for interface in removed_interfaces:
             for provider in spec_index.providers.values():
                 if provider.implements == interface:

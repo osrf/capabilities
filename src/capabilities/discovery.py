@@ -184,6 +184,13 @@ def spec_file_index_from_package_index(package_index):
             if tag != 'package' and tag in spec_file_index[package_name]:
                 spec_file_path = os.path.join(package_path, export.content)
                 spec_file_index[package_name][tag].append(spec_file_path)
+        # Prune packages with no specs
+        if (
+                not spec_file_index[package_name]['capability_interface']
+            and not spec_file_index[package_name]['capability_provider']
+            and not spec_file_index[package_name]['semantic_capability_interface']
+        ):
+            del spec_file_index[package_name]
     return spec_file_index
 
 
@@ -303,6 +310,15 @@ class SpecIndex(object):
             'instance': interface
         }
 
+    def remove_interface(self, interface_name):
+        """Removes a capability interface by name
+
+        :param interface_name: name of the interface to remove
+        :type interface_name: str
+        :raises: :py:exc:`KeyError` if there is no interface by that name
+        """
+        del self.__interfaces[interface_name]
+
     def add_semantic_interface(self, semantic_interface, file_path, package_name):
         """Add a loaded SemanticCapabilityInterface object into the repository
 
@@ -338,6 +354,15 @@ class SpecIndex(object):
             'instance': semantic_interface
         }
 
+    def remove_semantic_interface(self, semantic_interface_name):
+        """Removes a semantic capability interface by name
+
+        :param semantic_interface_name: name of the interface to remove
+        :type semantic_interface_name: str
+        :raises: :py:exc:`KeyError` if there is no interface by that name
+        """
+        del self.__semantic_interfaces[semantic_interface_name]
+
     def add_provider(self, provider, file_path, package_name):
         """Add a loaded CapabilityProvider object into the repository
 
@@ -370,6 +395,15 @@ class SpecIndex(object):
             'path': file_path,
             'instance': provider
         }
+
+    def remove_provider(self, provider_name):
+        """Removes a capability provider by name
+
+        :param provider_name: name of the interface to remove
+        :type provider_name: str
+        :raises: :py:exc:`KeyError` if there is no interface by that name
+        """
+        del self.__providers[provider_name]
 
     @property
     def names(self):

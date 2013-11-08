@@ -1,0 +1,17 @@
+<launch>
+  <node pkg="capabilities" name="capability_server" type="capability_server" output="screen" required="true"
+        launch-prefix="coverage run --append ">
+    <param name="debug" value="true"/>
+    <env name="ROS_PACKAGE_PATH"
+         value="$(find capabilities)/test/unit/discovery_workspaces/minimal:$(find capabilities)/test/rostest/test_server/dependent_capabilities:$(env ROS_PACKAGE_PATH)" />
+    <rosparam param="whitelist">
+        - navigation_capability/Navigation
+        - differential_mobile_base_capability/DifferentialMobileBase
+        - differential_mobile_base_capability/faux_differential_mobile_base
+    </rosparam>
+    <rosparam param="blacklist">
+        - differential_mobile_base_capability/DifferentialMobileBase
+    </rosparam>
+  </node>
+  <test test-name="white_black_lists_tests" pkg="capabilities" type="test_white_black_lists.py"/>
+</launch>

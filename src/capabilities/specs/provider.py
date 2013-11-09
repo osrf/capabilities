@@ -54,10 +54,10 @@ With a provider spec like this::
     launch_file: 'launch/navigation_nav_stack.launch'
     depends_on:
         'laser_capability/LaserObservation':
-            remappings:
-                topics:
-                    'scan': 'nav_stack/scan'
             provider: 'hokuyo_capability/hokuyo_base'
+    remappings:
+        topics:
+            'scan': 'nav_stack/scan'
 
 You can use this API like this::
 
@@ -69,9 +69,7 @@ You can use this API like this::
         <capabilities.specs.provider.DependsOnRelationship object at 0x109a3fa50>}
     >>> print(cp.dependencies['laser_capability/LaserObservation'])
     laser_capability/LaserObservation:
-    remappings:
-      'scan' -> 'nav_stack/scan'
-    preferred provider: hokuyo_capability/hokuyo_base
+        preferred provider: hokuyo_capability/hokuyo_base
     >>> print(cp.launch_file)
     launch/navigation_nav_stack.launch
     >>> print(cp.implements)
@@ -174,12 +172,23 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
         raise InvalidProvider("Invalid spec name for implements: " + str(exc), file_name)
     launch_file = spec.get('launch_file', None)
     description = spec.get('description', 'No description given.')
-    capability_provider = CapabilityProvider(name, spec_version, implements, launch_file, description)
+    remappings = spec.get('remappings', {})
+    if not isinstance(remappings, dict):
+        raise InvalidProvider("Invalid remappings section, expected dict got: '{0}'".format(type(remappings)),
+                              file_name)
+    try:
+        capability_provider = CapabilityProvider(name, spec_version, implements, launch_file, description, remappings)
+    except (AssertionError, ValueError) as e:  # Catch remapping errors
+            raise InvalidProvider(str(e), file_name)
     depends_on = spec.get('depends_on', {})
+    if isinstance(depends_on, str):
+        depends_on = [depends_on]
+    if isinstance(depends_on, (list, tuple)):
+        depends_on = dict([(x, {}) for x in depends_on])
     if not isinstance(depends_on, dict):
         raise InvalidProvider("Invalid depends_on section, expected dict got: '{0}'".format(type(depends_on)),
                               file_name)
-    valid_conditionals = ['remappings', 'provider']
+    valid_conditionals = ['provider']
     for interface, conditions in depends_on.iteritems():
         if not isinstance(conditions, dict):
             raise InvalidProvider("Invalid depends_on conditional section, expected dict got: '{0}'"
@@ -188,12 +197,8 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
             if key not in valid_conditionals:
                 raise InvalidProvider("Invalid depends_on interface condition '{0}', should be one of: '{1}'"
                                       .format(key, "', '".join(valid_conditionals)), file_name)
-        remappings = conditions.get('remappings', {})
         preferred_provider = conditions.get('provider', None)
-        try:
-            capability_provider.add_depends_on(interface, remappings, preferred_provider)
-        except (AssertionError, ValueError) as e:
-            raise InvalidProvider(str(e), file_name)
+        capability_provider.add_depends_on(interface, preferred_provider)
     return capability_provider
 
 
@@ -209,16 +214,26 @@ class CapabilityProvider(object):
     - implements (str): Name of a Capability Interface which this provider implements
     - launch_file (str or None): Path to a launch file which runs the provider, None indicates no launch file to run
     - depends_on (dict): list of depends on relationships to Capabilities with remappings and provider preference
+    - remappings (dict): map of ROS Names defined in the Capability to their new names for this provider
     """
     spec_type = 'provider'
 
-    def __init__(self, name, spec_version, implements, launch_file=None, description=None):
+    def __init__(self, name, spec_version, implements, launch_file=None, description=None, remappings=None):
         self.name = name
         self.spec_version = spec_version
         self.description = description
         self.implements = implements
         self.launch_file = launch_file
+        self.__remap_collection = RemapCollection()
+        self.add_remappings_by_dict(remappings or {})
         self.__depends_on = {}
+
+    @property
+    def remappings(self):
+        return self.__remap_collection.remappings
+
+    def add_remappings_by_dict(self, remappings_dict):
+        self.__remap_collection.add_remappings_by_dict(remappings_dict)
 
     @property
     def dependencies(self):
@@ -227,9 +242,8 @@ class CapabilityProvider(object):
     def depends_on(self, interface_name):
         return interface_name in self.__depends_on
 
-    def add_depends_on(self, interface_name, remappings, preferred_provider=None):
+    def add_depends_on(self, interface_name, preferred_provider=None):
         relationship = DependsOnRelationship(interface_name, preferred_provider)
-        relationship.add_remappings_by_dict(remappings)
         # The dict strucutre of YAML should prevent duplicate interface_name keys
         self.__depends_on[interface_name] = relationship
 
@@ -241,11 +255,13 @@ class CapabilityProvider(object):
   implements: {implements}
   description:
     {description}
-
+{remappings_str}
   depend on relationships:
 {depends_on_str}
 }}
-""".format(depends_on_str="[\n" + "\n".join([str(v) for v in self.__depends_on.values()]) + "\n]", **self.__dict__)
+""".format(depends_on_str="[\n" + "\n".join([str(v) for v in self.__depends_on.values()]) + "\n]",
+           remappings_str=str(self.__remap_collection) + "\n",
+           **self.__dict__)
 
 
 class DependsOnRelationship(object):
@@ -255,7 +271,6 @@ class DependsOnRelationship(object):
 
     - capability_name (str): name of the Capability which is depended on
     - provider_preference (str): (optional) name of preferred provider for the Capability which is depended on
-    - remappings (dict): map of ROS Names defined in the Capability to their new names for this provider
     """
     valid_remapping_types = ['topics', 'services', 'parameters', 'actions']
 
@@ -267,17 +282,9 @@ class DependsOnRelationship(object):
         self.capability_name = capability_name
         self.provider = preferred_provider
         self.preferred_provider = preferred_provider
-        self.__remap_collection = RemapCollection()
 
     def __str__(self):
-        msg = "{0}:\n{1}".format(self.name, str(self.__remap_collection))
+        msg = "{0}".format(self.name)
         if self.provider:
-            msg += "\npreferred provider: {0}".format(self.provider)
+            msg += ":\n  preferred provider: {0}".format(self.provider)
         return msg
-
-    @property
-    def remappings(self):
-        return self.__remap_collection.remappings
-
-    def add_remappings_by_dict(self, remappings_dict):
-        self.__remap_collection.add_remappings_by_dict(remappings_dict)

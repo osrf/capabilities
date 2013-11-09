@@ -4,3 +4,4 @@ name: minimal
 spec_version: 1
 spec_type: provider
 implements: minimal_pkg/Minimal
+depends_on: 'some_pkg/SomeThing'

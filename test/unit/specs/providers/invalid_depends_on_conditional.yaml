@@ -5,7 +5,8 @@ spec_version: 1
 spec_type: provider
 implements: a_package/Something
 depends_on:
-    'SomethingElse':
-        remappings_typo:
-            dynamic_parameter:
-                'foo': 'bar'
+    'some_pkg/SomethingElse':
+        provider_typo: 'some_pkg/SomeProvider'
+remappings_typo:
+    dynamic_parameter:
+        'foo': 'bar'

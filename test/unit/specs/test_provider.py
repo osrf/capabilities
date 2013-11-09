@@ -40,17 +40,18 @@ test_files_map = {
     'invalid_depends_on_conditional.yaml': [None, provider.InvalidProvider, 'Invalid depends_on interface condition'],
     'invalid_depends_on_conditional_section.yaml': [None, provider.InvalidProvider, 'depends_on conditional section'],
     'invalid_depends_on_section.yaml': [None, provider.InvalidProvider, 'Invalid depends_on section'],
-    'invalid_remapping_duplicate.yaml': [None, provider.InvalidProvider, 'is remapped twice, but to different values'],
+    'invalid_implements_name.yaml': [None, provider.InvalidProvider, 'Invalid spec name for implements'],
+    'invalid_nodelet_manager.yaml': [None, provider.InvalidProvider, 'Invalid nodelet_manager'],
     'invalid_remapping.yaml': [None, provider.InvalidProvider, 'Invalid remappings section'],
+    'invalid_remapping_duplicate.yaml': [None, provider.InvalidProvider, 'is remapped twice, but to different values'],
     'invalid_spec_type.yaml': [None, provider.InvalidProvider, 'Invalid spec type'],
     'minimal.yaml': [check_minimal, None, None],
     'navigation_nav_stack.yaml': [check_navigation, None, None],
     'no_implements.yaml': [None, provider.InvalidProvider, 'No implements specified'],
     'no_name.yaml': [None, provider.InvalidProvider, 'No name specified'],
-    'no_spec_version.yaml': [None, provider.InvalidProvider, 'No spec version specified'],
     'no_spec_type.yaml': [None, provider.InvalidProvider, 'No spec type specified'],
+    'no_spec_version.yaml': [None, provider.InvalidProvider, 'No spec version specified'],
     'version_2_spec.yaml': [None, provider.InvalidProvider, 'Invalid spec version'],
-    'invalid_implements_name.yaml': [None, provider.InvalidProvider, 'Invalid spec name for implements'],
 }
 
 

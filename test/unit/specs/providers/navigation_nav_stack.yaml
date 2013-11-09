@@ -6,6 +6,7 @@ spec_type: provider
 description: 'Implements the ability to navigate.'
 implements: navigation/Navigation
 launch_file: 'launch/navigation_nav_stack.launch'
+nodelet_manager: 'nav_manager'
 depends_on:
     'laser_capability/LaserObservation':
         provider: 'hokuyo_capability/hokuyo_base'

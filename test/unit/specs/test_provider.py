@@ -20,8 +20,8 @@ def check_navigation(cp):
     assert cp.launch_file == 'launch/navigation_nav_stack.launch'
     assert cp.depends_on('laser_capability/LaserObservation'), cp.dependencies
     str(cp.dependencies['laser_capability/LaserObservation'])
-    assert 'scan' in cp.dependencies['laser_capability/LaserObservation'].remappings
-    assert 'nav_stack/scan' == cp.dependencies['laser_capability/LaserObservation'].remappings['scan']
+    assert 'scan' in cp.remappings
+    assert 'nav_stack/scan' == cp.remappings['scan']
     assert 'hokuyo_capability/hokuyo_base' == cp.dependencies['laser_capability/LaserObservation'].provider
     with assert_raises_regex(AttributeError, "can't set attribute"):
         cp.dependencies = {'SomeInterface': {}}
@@ -41,7 +41,7 @@ test_files_map = {
     'invalid_depends_on_conditional_section.yaml': [None, provider.InvalidProvider, 'depends_on conditional section'],
     'invalid_depends_on_section.yaml': [None, provider.InvalidProvider, 'Invalid depends_on section'],
     'invalid_remapping_duplicate.yaml': [None, provider.InvalidProvider, 'is remapped twice, but to different values'],
-    'invalid_remapping.yaml': [None, provider.InvalidProvider, 'Invalid remapping type'],
+    'invalid_remapping.yaml': [None, provider.InvalidProvider, 'Invalid remappings section'],
     'invalid_spec_type.yaml': [None, provider.InvalidProvider, 'Invalid spec type'],
     'minimal.yaml': [check_minimal, None, None],
     'navigation_nav_stack.yaml': [check_navigation, None, None],

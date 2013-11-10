@@ -12,6 +12,9 @@
     <capability_interface>
       interfaces/Minimal2.yaml
     </capability_interface>
+    <capability_provider>
+      providers/specific_minimal2.yaml
+    </capability_provider>
 
   </export>
 </package>

@@ -79,6 +79,10 @@ class Test(unittest.TestCase):
         # start a capability without specifying a provider
         call_service('/capability_server/start_capability', 'minimal_pkg/Minimal', '')
         call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')
+        # start a provider which depends on an interface without specifiying a provider
+        call_service('/capability_server/start_capability', 'minimal_pkg/SpecificMinimal',
+                     'no_provider_pkg/specific_minimal2')
+        call_service('/capability_server/stop_capability', 'minimal_pkg/SpecificMinimal')
 
     def test_service_discovery(self):
         # get spec index via a service call (This tests the handling in the server)

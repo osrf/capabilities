@@ -58,6 +58,7 @@ With a provider spec like this::
     remappings:
         topics:
             'scan': 'nav_stack/scan'
+    nodelet_manager: 'nav_manager'
 
 You can use this API like this::
 
@@ -74,6 +75,8 @@ You can use this API like this::
     launch/navigation_nav_stack.launch
     >>> print(cp.implements)
     navigation/Navigation
+    >>> print(cp.nodelet_manager)
+    nav_manager
 
 """
 
@@ -176,8 +179,13 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
     if not isinstance(remappings, dict):
         raise InvalidProvider("Invalid remappings section, expected dict got: '{0}'".format(type(remappings)),
                               file_name)
+    nodelet_manager = spec.get('nodelet_manager', None)
+    if not isinstance(nodelet_manager, (str, type(None))):
+        raise InvalidProvider("Invalid nodelet_manager, expected string got: '{0}'".format(type(nodelet_manager)),
+                              file_name)
     try:
-        capability_provider = CapabilityProvider(name, spec_version, implements, launch_file, description, remappings)
+        capability_provider = CapabilityProvider(name, spec_version, implements, launch_file,
+                                                 description, remappings, nodelet_manager)
     except (AssertionError, ValueError) as e:  # Catch remapping errors
             raise InvalidProvider(str(e), file_name)
     depends_on = spec.get('depends_on', {})
@@ -215,15 +223,18 @@ class CapabilityProvider(object):
     - launch_file (str or None): Path to a launch file which runs the provider, None indicates no launch file to run
     - depends_on (dict): list of depends on relationships to Capabilities with remappings and provider preference
     - remappings (dict): map of ROS Names defined in the Capability to their new names for this provider
+    - nodelet_manager (str or None): name of the nodelet manager used by the provider, this is an implementation hint
     """
     spec_type = 'provider'
 
-    def __init__(self, name, spec_version, implements, launch_file=None, description=None, remappings=None):
+    def __init__(self, name, spec_version, implements, launch_file=None,
+                 description=None, remappings=None, nodelet_manager=None):
         self.name = name
         self.spec_version = spec_version
         self.description = description
         self.implements = implements
         self.launch_file = launch_file
+        self.nodelet_manager = nodelet_manager
         self.__remap_collection = RemapCollection()
         self.add_remappings_by_dict(remappings or {})
         self.__depends_on = {}
@@ -252,7 +263,7 @@ class CapabilityProvider(object):
 {{
   name: {name}
   spec version: {spec_version}
-  implements: {implements}
+  implements: {implements}{nodelet_manager_str}
   description:
     {description}
 {remappings_str}
@@ -261,6 +272,7 @@ class CapabilityProvider(object):
 }}
 """.format(depends_on_str="[\n" + "\n".join([str(v) for v in self.__depends_on.values()]) + "\n]",
            remappings_str=str(self.__remap_collection) + "\n",
+           nodelet_manager_str='' if self.nodelet_manager is None else '\n' + self.nodelet_manager + '\n',
            **self.__dict__)
 
 

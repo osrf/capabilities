@@ -1,0 +1,7 @@
+%YAML 1.1
+---
+name: minimal
+spec_version: 1
+spec_type: provider
+implements: minimal_pkg/Minimal
+nodelet_manager: {'not': 'valid'}

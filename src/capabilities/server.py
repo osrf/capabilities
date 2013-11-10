@@ -574,7 +574,7 @@ class CapabilityServer(object):
     def __get_provider_dependencies(self, provider):
         result = []
         for interface, dep in provider.dependencies.items():
-            provider_name = dep.provider
+            provider_name = dep.provider or self.__default_providers[interface]
             if provider_name not in self.__spec_index.providers:
                 # This is the case where a provider depends on another interface,
                 # but the preferred provider does not exist

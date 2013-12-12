@@ -62,7 +62,7 @@ class CapabilitiesClient(object):
     """
     def __init__(self, capability_server_node_name='/capability_server'):
         self._name = capability_server_node_name
-        self._bonds = []
+        self._bonds = {}
         # Create service proxy for free_capability
         service_name = '{0}/free_capability'.format(capability_server_node_name)
         self.__free_capability = rospy.ServiceProxy(service_name, FreeCapability)
@@ -71,7 +71,9 @@ class CapabilitiesClient(object):
         self.__use_capability = rospy.ServiceProxy(service_name, UseCapability)
 
     def __wait_for_service(self, service, timeout):
-        if not service.wait_for_service(timeout):
+        try:
+            service.wait_for_service(timeout)
+        except rospy.ROSException as exc:
             rospy.logwarn("Timed out after waiting '{0}' seconds for service '{1}' to be available."
                           .format(timeout, service.resolved_name))
             return False

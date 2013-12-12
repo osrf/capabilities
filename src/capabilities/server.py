@@ -738,7 +738,7 @@ class CapabilityServer(object):
         capability.bonds[bond_id] = None
         capability.reference_count -= 1
         if capability.reference_count == 0:
-            self.__stop_capability(capability)
+            self.__stop_capability(capability.interface)
 
     def handle_free_capability(self, req):
         return self.__catch_and_log(self._handle_free_capability, req)

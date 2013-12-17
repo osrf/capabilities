@@ -570,8 +570,7 @@ class CapabilityServer(object):
         capability = self.__capability_instances[name]
         rdepends = get_reverse_depends(name, self.__capability_instances.values())
         for cap in rdepends:
-            cap.stopped()
-            self.__launch_manager.stop_capability_provider(cap.pid)
+            self.__stop_capability(cap.interface)
         capability.stopped()
         self.__launch_manager.stop_capability_provider(capability.pid)
 

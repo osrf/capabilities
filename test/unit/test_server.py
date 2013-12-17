@@ -60,7 +60,7 @@ try:
         instances['foo'].depends_on = ['bar']
         instances['bar'].depends_on = []
         instances['baz'].depends_on = ['bar']
-        result = [x.name for x in server.get_reverse_depends('bar', instances)]
+        result = [x.name for x in server.get_reverse_depends('bar', instances.values())]
         assert sorted(['foo_pkg/foo', 'baz_pkg/baz']) == sorted(result), sorted(result)
 
 except ImportError as exc:

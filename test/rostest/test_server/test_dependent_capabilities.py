@@ -57,9 +57,8 @@ class Test(unittest.TestCase):
         call_service('/capability_server/stop_capability',
                      'differential_mobile_base_capability/DifferentialMobileBase')
         resp = call_service('/capability_server/get_running_capabilities')
-        expected = []
         # The list of running capabilities should be empty
-        self.assertEqual(expected, resp)
+        self.assertEqual([], resp.running_capabilities)
  
 
 if __name__ == '__main__':

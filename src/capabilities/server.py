@@ -244,7 +244,7 @@ def get_reverse_depends(name, capability_instances):
     :rtype: :py:obj:`list` of :py:class:`CapabilityInstance`
     """
     rdepends = []
-    for instance in capability_instances.values():
+    for instance in capability_instances:
         if name in instance.depends_on:
             rdepends.append(instance)
     return rdepends
@@ -517,7 +517,7 @@ class CapabilityServer(object):
             if cap.started_by == USER_SERVICE_REASON:
                 # Started by user, do not garbage collect this
                 continue
-            rdepends = get_reverse_depends(cap.interface, self.__capability_instances)
+            rdepends = get_reverse_depends(cap.interface, self.__capability_instances.values())
             if rdepends:
                 # Someone depends on me, do not garbage collect this
                 rospy.logdebug("Keeping the '{0}' provider of the '{1}' interface, ".format(cap.name, cap.interface) +
@@ -568,6 +568,10 @@ class CapabilityServer(object):
                          "which is not in the list of capability instances.")
             return
         capability = self.__capability_instances[name]
+        rdepends = get_reverse_depends(name, self.__capability_instances.values())
+        for cap in rdepends:
+            cap.stopped()
+            self.__launch_manager.stop_capability_provider(cap.pid)
         capability.stopped()
         self.__launch_manager.stop_capability_provider(capability.pid)
 
@@ -752,7 +756,7 @@ class CapabilityServer(object):
             running_capability.capability = Capability(instance.interface, instance.name)
             running_capability.started_by = instance.started_by
             running_capability.pid = instance.pid
-            rdepends = get_reverse_depends(instance.interface, self.__capability_instances)
+            rdepends = get_reverse_depends(instance.interface, self.__capability_instances.values())
             for dep in rdepends:
                 running_capability.dependent_capabilities.append(Capability(dep.interface, dep.name))
             resp.running_capabilities.append(running_capability)

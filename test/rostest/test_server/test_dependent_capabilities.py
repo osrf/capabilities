@@ -41,6 +41,26 @@ class Test(unittest.TestCase):
                          'navigation_capability/Navigation',
                          'navigation_capability/faux_navigation_invalid_preferred_provider')
 
+    def test_stop_base_capability(self):
+        '''
+        Stopping a base capability should stop all dependent capabilities too.
+        '''
+        call_service('/capability_server/start_capability',
+                     'navigation_capability/Navigation',
+                     'navigation_capability/faux_navigation')
+        rospy.sleep(6)  # Wait for the system to settle
+        resp = call_service('/capability_server/get_running_capabilities')
+        result = [x.capability.capability for x in resp.running_capabilities]
+        expected = ['navigation_capability/Navigation',
+                    'differential_mobile_base_capability/DifferentialMobileBase']
+        self.assertEqual(sorted(expected), sorted(expected))
+        call_service('/capability_server/stop_capability',
+                     'differential_mobile_base_capability/DifferentialMobileBase')
+        resp = call_service('/capability_server/get_running_capabilities')
+        # The list of running capabilities should be empty
+        self.assertEqual([], resp.running_capabilities)
+ 
+
 if __name__ == '__main__':
     rospy.init_node(TEST_NAME, anonymous=True)
     rostest.unitrun('capabilities', TEST_NAME, Test)

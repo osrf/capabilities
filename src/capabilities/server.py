@@ -88,33 +88,6 @@ from capabilities.specs.semantic_interface import semantic_capability_interface_
 
 USER_SERVICE_REASON = 'user service call'
 
-## Hack to squelch output from Service call failure ##
-
-from rospy.impl import tcpros_service
-
-
-def custom__handle_request(self, transport, request):  # pragma: no cover
-    import struct
-    from rospy.impl.tcpros_service import convert_return_to_response
-    from rospy.service import ServiceException
-    try:
-        # convert return type to response Message instance
-        response = convert_return_to_response(self.handler(request), self.response_class)
-        self.seq += 1
-        # ok byte
-        transport.write_buff.write(struct.pack('<B', 1))
-        transport.send_message(response, self.seq)
-    except ServiceException as e:
-        rospy.core.rospydebug("handler raised ServiceException: %s" % e)
-        self._write_service_error(transport, "service cannot process request: %s" % e)
-    except Exception as e:
-        # rospy.logerr("Error processing request: %s\n%s" % (e, traceback.print_exc()))
-        self._write_service_error(transport, "error processing request: %s" % e)
-
-tcpros_service.ServiceImpl._handle_request = custom__handle_request
-
-## End hacks ##
-
 
 class CapabilityInstance(object):
     """Encapsulates the state of an instance of a Capability Provider
@@ -268,6 +241,10 @@ class CapabilityServer(object):
         self.__default_providers = {}
         self.__missing_default_provider_is_an_error = rospy.get_param('~missing_default_provider_is_an_error', False)
 
+    def custom_error_handler(self, e, exc_type, exc_value, tb):
+        # Override the standard error handler to silence rospy
+        pass
+
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
         self.__package_whitelist = rospy.get_param('~package_whitelist', None)
@@ -302,35 +279,44 @@ class CapabilityServer(object):
         self.__populate_default_providers()
 
         self.__start_capability_service = rospy.Service(
-            '~start_capability', StartCapability, self.handle_start_capability)
+            '~start_capability', StartCapability, self.handle_start_capability,
+            error_handler=self.custom_error_handler)
 
         self.__stop_capability_service = rospy.Service(
-            '~stop_capability', StopCapability, self.handle_stop_capability)
+            '~stop_capability', StopCapability, self.handle_stop_capability,
+            error_handler=self.custom_error_handler)
 
         self.__reload_service = rospy.Service(
-            '~reload_capabilities', Empty, self.handle_reload_request)
+            '~reload_capabilities', Empty, self.handle_reload_request,
+            error_handler=self.custom_error_handler)
 
         self.__interfaces_service = rospy.Service(
-            '~get_interfaces', GetInterfaces, self.handle_get_interfaces)
+            '~get_interfaces', GetInterfaces, self.handle_get_interfaces,
+            error_handler=self.custom_error_handler)
 
         self.__providers_service = rospy.Service(
-            '~get_providers', GetProviders, self.handle_get_providers)
+            '~get_providers', GetProviders, self.handle_get_providers,
+            error_handler=self.custom_error_handler)
 
         self.__semantic_interfaces_service = rospy.Service(
             '~get_semantic_interfaces', GetSemanticInterfaces,
-            self.handle_get_semantic_interfaces)
+            self.handle_get_semantic_interfaces,
+            error_handler=self.custom_error_handler)
 
         self.__running_capabilities = rospy.Service(
             '~get_running_capabilities', GetRunningCapabilities,
-            self.handle_get_running_capabilities)
+            self.handle_get_running_capabilities,
+            error_handler=self.custom_error_handler)
 
         self.__capability_specs = rospy.Service(
             '~get_capability_specs', GetCapabilitySpecs,
-            self.handle_get_capability_specs)
+            self.handle_get_capability_specs,
+            error_handler=self.custom_error_handler)
 
         self.__capability_spec = rospy.Service(
             '~get_capability_spec', GetCapabilitySpec,
-            self.handle_get_capability_spec)
+            self.handle_get_capability_spec,
+            error_handler=self.custom_error_handler)
 
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)

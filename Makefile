@@ -1,5 +1,5 @@
 SRC_DIR=$(shell pwd)
-BUILD_DIR=/tmp/$(shell basename ${SRC_DIR})_build
+BUILD_DIR=/tmp/$(shell basename ${SRC_DIR})_ws
 
 define COVERAGERC
 [run]
@@ -11,16 +11,16 @@ export COVERAGERC
 coverage:
 	@echo "Using SRC_DIR: ${SRC_DIR}"
 	@echo "Using BUILD_DIR: ${BUILD_DIR}"
-	mkdir -p ${BUILD_DIR}
+	mkdir -p ${BUILD_DIR}/src
 	echo "$$COVERAGERC" > ${BUILD_DIR}/.coveragerc
 	@echo "Cleaning out old coverage files"
 	-rm ~/.ros/.coverage
 	-rm ${BUILD_DIR}/.coverage
 	-rm ./.coverage
-	cd ${BUILD_DIR} && cmake ${SRC_DIR} -DCMAKE_INSTALL_PREFIX=`pwd`/install
-	cd ${BUILD_DIR} && make
-	cd ${BUILD_DIR} && make tests
-	cd ${BUILD_DIR} && make run_tests
+	cp -av ${SRC_DIR} ${BUILD_DIR}/src
+	cd ${BUILD_DIR} && catkin_init_workspace
+	cd ${BUILD_DIR} && catkin_make
+	cd ${BUILD_DIR} && catkin_make test
 	catkin_test_results ${BUILD_DIR}
 	ls ${HOME}/.ros/.coverage
 	cp ${HOME}/.ros/.coverage ./.coverage.1

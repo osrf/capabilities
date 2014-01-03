@@ -18,7 +18,7 @@ coverage:
 	-rm ${BUILD_DIR}/.coverage
 	-rm ./.coverage
 	cp -av ${SRC_DIR} ${BUILD_DIR}/src
-	cd ${BUILD_DIR} && catkin_init_workspace
+	cd ${BUILD_DIR}/src && catkin_init_workspace
 	cd ${BUILD_DIR} && catkin_make
 	cd ${BUILD_DIR} && catkin_make test
 	catkin_test_results ${BUILD_DIR}

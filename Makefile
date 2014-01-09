@@ -17,10 +17,10 @@ coverage:
 	-rm ~/.ros/.coverage
 	-rm ${BUILD_DIR}/.coverage
 	-rm ./.coverage
-	cp -av ${SRC_DIR} ${BUILD_DIR}/src
-	cd ${BUILD_DIR}/src && catkin_init_workspace
-	cd ${BUILD_DIR} && catkin_make
-	cd ${BUILD_DIR} && catkin_make test
+	cd ${BUILD_DIR} && cmake ${SRC_DIR} -DCMAKE_INSTALL_PREFIX=`pwd`/install
+	cd ${BUILD_DIR} && make
+	cd ${BUILD_DIR} && make tests
+	cd ${BUILD_DIR} && make run_tests
 	catkin_test_results ${BUILD_DIR}
 	ls ${HOME}/.ros/.coverage
 	cp ${HOME}/.ros/.coverage ./.coverage.1

@@ -1,5 +1,5 @@
 SRC_DIR=$(shell pwd)
-BUILD_DIR=/tmp/$(shell basename ${SRC_DIR})_ws
+BUILD_DIR=/tmp/$(shell basename ${SRC_DIR})_build
 
 define COVERAGERC
 [run]
@@ -11,7 +11,7 @@ export COVERAGERC
 coverage:
 	@echo "Using SRC_DIR: ${SRC_DIR}"
 	@echo "Using BUILD_DIR: ${BUILD_DIR}"
-	mkdir -p ${BUILD_DIR}/src
+	mkdir -p ${BUILD_DIR}
 	echo "$$COVERAGERC" > ${BUILD_DIR}/.coveragerc
 	@echo "Cleaning out old coverage files"
 	-rm ~/.ros/.coverage

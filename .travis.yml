@@ -12,7 +12,7 @@ install:
 script:
   - source /opt/ros/hydro/setup.bash
   - make coverage
-  - catkin_test_results /tmp/capabilities_build/test_results
+  - catkin_test_results /tmp/capabilities_build/build/test_results
 notifications:
   email: false
 after_success:

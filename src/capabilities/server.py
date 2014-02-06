@@ -600,7 +600,7 @@ class CapabilityServer(object):
     def __start_capability(self, capability, preferred_provider):
         if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
             raise RuntimeError("Capability '{0}' not found.".format(capability))
-        # If not preferred provider is given, use the default
+        # If no preferred provider is given, use the default
         preferred_provider = preferred_provider or self.__default_providers[capability]
         providers = dict([(n, p)
                           for n, p in self.__spec_index.providers.items()

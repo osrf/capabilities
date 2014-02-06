@@ -36,6 +36,7 @@ if(CATKIN_ENABLE_TESTING)
     catkin_add_nosetests(test)
 
     add_rostest(test/rostest/test_launch_manager/test_launch_manager.test)
+    add_rostest(test/rostest/test_server/test_default_provider.test)
     add_rostest(test/rostest/test_server/test_dependent_capabilities.test)
     add_rostest(test/rostest/test_server/test_invalid_specs.test)
     add_rostest(test/rostest/test_server/test_package_white_black_lists.test)

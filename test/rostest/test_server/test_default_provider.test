@@ -1,0 +1,10 @@
+<launch>
+  <node pkg="capabilities" name="capability_server" type="capability_server" output="screen" required="true"
+        launch-prefix="coverage run --append ">
+    <param name="debug" value="true"/>
+    <env name="ROS_PACKAGE_PATH"
+         value="$(find capabilities)/test/rostest/test_server/no_default_provider:$(find capabilities)/test/unit/discovery_workspaces/minimal:$(env ROS_PACKAGE_PATH)" />
+    <param name="defaults/no_default_provider_pkg/Minimal" value="no_default_provider_pkg/minimal" />
+  </node>
+  <test test-name="default_provider" pkg="capabilities" type="test_default_provider.py"/>
+</launch>

@@ -609,15 +609,14 @@ class CapabilityServer(object):
     def __start_capability(self, capability, preferred_provider):
         if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
             raise RuntimeError("Capability '{0}' not found.".format(capability))
+        # If not preferred provider is given, use the default
+        preferred_provider = preferred_provider or self.__default_providers[capability]
         providers = self.__get_providers_for_interface(capability)
-        if preferred_provider:
-            if preferred_provider not in providers:
-                raise RuntimeError(
-                    "Capability Provider '{0}' not found for Capability '{1}'"
-                    .format(preferred_provider, capability))
-            provider = providers[preferred_provider]
-        else:
-            provider = providers.values()[0]
+        if preferred_provider not in providers:
+            raise RuntimeError(
+                "Capability Provider '{0}' not found for Capability '{1}'"
+                .format(preferred_provider, capability))
+        provider = providers[preferred_provider]
         instances = self.__get_capability_instances_from_provider(provider)
         with self.__graph_lock:
             for x in instances:

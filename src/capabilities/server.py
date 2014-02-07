@@ -336,6 +336,7 @@ class CapabilityServer(object):
             '~events', CapabilityEvent, self.handle_capability_events)
 
         rospy.loginfo("Capability Server Ready")
+        rospy.Publisher("~events", CapabilityEvent).publish(CapabilityEvent(type=CapabilityEvent.SERVER_READY))
 
         rospy.spin()
 
@@ -597,27 +598,19 @@ class CapabilityServer(object):
             instances.append(CapabilityInstance(curr, curr_path, started_by=reason))
         return instances
 
-    def __get_providers_for_interface(self, interface):
-        providers = dict([(n, p)
-                          for n, p in self.__spec_index.providers.items()
-                          if p.implements == interface])
-        if not providers:
-            raise RuntimeError("No providers for Capability '{0}'"
-                               .format(interface))
-        return providers
-
     def __start_capability(self, capability, preferred_provider):
         if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
             raise RuntimeError("Capability '{0}' not found.".format(capability))
-        providers = self.__get_providers_for_interface(capability)
-        if preferred_provider:
-            if preferred_provider not in providers:
-                raise RuntimeError(
-                    "Capability Provider '{0}' not found for Capability '{1}'"
-                    .format(preferred_provider, capability))
-            provider = providers[preferred_provider]
-        else:
-            provider = providers.values()[0]
+        # If no preferred provider is given, use the default
+        preferred_provider = preferred_provider or self.__default_providers[capability]
+        providers = dict([(n, p)
+                          for n, p in self.__spec_index.providers.items()
+                          if p.implements == capability])
+        if preferred_provider not in providers:
+            raise RuntimeError(
+                "Capability Provider '{0}' not found for Capability '{1}'"
+                .format(preferred_provider, capability))
+        provider = providers[preferred_provider]
         instances = self.__get_capability_instances_from_provider(provider)
         with self.__graph_lock:
             for x in instances:

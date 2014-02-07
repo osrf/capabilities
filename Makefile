@@ -21,6 +21,7 @@ coverage:
 	cd ${BUILD_DIR} && make
 	cd ${BUILD_DIR} && make tests
 	cd ${BUILD_DIR} && make run_tests
+	catkin_test_results ${BUILD_DIR}
 	ls ${HOME}/.ros/.coverage
 	cp ${HOME}/.ros/.coverage ./.coverage.1
 	cd ${BUILD_DIR} && ${BUILD_DIR}/devel/env.sh nosetests --where=${SRC_DIR}/test/unit --with-coverage -s

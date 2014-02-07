@@ -133,6 +133,8 @@ class LaunchManager(object):
         :param msg: ROS message recieved on the events topic
         :type msg: :py:class:`capabilities.msgs.CapabilityEvent`
         """
+        if msg.type == msg.SERVER_READY:
+            return
         if msg.type != msg.TERMINATED:
             return
         with self.__running_launch_files_lock:

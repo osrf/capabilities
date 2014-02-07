@@ -6,6 +6,8 @@ import os
 import sys
 import unittest
 
+from threading import Event
+
 import rostest
 
 import rospy
@@ -22,6 +24,18 @@ TEST_NAME = 'test_ros_services'
 
 from capabilities.service_discovery import spec_index_from_service
 from capabilities.msg import CapabilityEvent
+
+
+def wait_for_capability_server(timeout=None):
+    event = Event()
+
+    def handler(msg):
+        if msg.type == msg.SERVER_READY:
+            event.set()
+
+    rospy.Subscriber('/capability_server/events', CapabilityEvent, handler)
+
+    return event.wait(timeout)
 
 
 def call_service(service_name, *args, **kwargs):

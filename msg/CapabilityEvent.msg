@@ -8,6 +8,7 @@ string provider
 string LAUNCHED="launched"
 string STOPPED="stopped"
 string TERMINATED="terminated"
+string SERVER_READY="server_ready"
 # Event type
 string type
 

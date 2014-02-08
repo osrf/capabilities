@@ -470,6 +470,9 @@ class CapabilityServer(object):
         # Ignore any publications which we did not send (external publishers)
         if event._connection_header['callerid'] != rospy.get_name():
             return  # pragma: no cover
+        # Ignore the `server_ready` event
+        if event.type == event.SERVER_READY:
+            return
         # Update the capability
         capability = event.capability
         with self.__graph_lock:

@@ -20,16 +20,15 @@ class Test(unittest.TestCase):
         call_service('/capability_server/start_capability',
                      'navigation_capability/Navigation',
                      'navigation_capability/faux_navigation')
-        rospy.sleep(6)  # Wait for the system to settle
-        resp = call_service('/capability_server/get_running_capabilities')
-        result = [x.capability.capability for x in resp.running_capabilities]
-        if not result:
-            # Retry, sometimes the system is really slow...
-            rospy.sleep(6)
-            resp = call_service('/capability_server/get_running_capabilities')
-            result = [x.capability.capability for x in resp.running_capabilities]
         expected = ['navigation_capability/Navigation',
                     'differential_mobile_base_capability/DifferentialMobileBase']
+        result = []
+        count = 0
+        while count != 10 and sorted(result) != sorted(expected):
+            rospy.sleep(1)
+            count += 1
+            resp = call_service('/capability_server/get_running_capabilities')
+            result = [x.capability.capability for x in resp.running_capabilities]
         assert sorted(result) == sorted(expected), (sorted(result), sorted(expected))
         call_service('/capability_server/start_capability',
                      'minimal_pkg/Minimal',

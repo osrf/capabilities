@@ -1,0 +1,6 @@
+<launch>
+    <arg name="capability_server_nodelet_manager_name" default="capability_server_nodelet_manager" />
+    <node pkg="nodelet" type="nodelet"
+          name="$(arg capability_server_nodelet_manager_name)"
+          output="screen" args="manager" />
+</launch>

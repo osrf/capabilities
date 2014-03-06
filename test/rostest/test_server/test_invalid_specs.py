@@ -28,6 +28,7 @@ class Test(unittest.TestCase):
         capability_server._CapabilityServer__load_capabilities()
         capability_server._CapabilityServer__populate_default_providers()
         capability_server._CapabilityServer__stop_capability('not_a_running_capability')
+        capability_server.shutdown()
 
     def test_no_default_provider_pedantic(self):
         no_default_provider = os.path.join(TEST_DIR, 'rostest', 'test_server', 'no_default_provider')
@@ -37,6 +38,7 @@ class Test(unittest.TestCase):
         capability_server._CapabilityServer__load_capabilities()
         with assert_raises(SystemExit):
             capability_server._CapabilityServer__populate_default_providers()
+        capability_server.shutdown()
 
     def test_no_default_provider(self):
         no_default_provider = os.path.join(TEST_DIR, 'rostest', 'test_server', 'no_default_provider')
@@ -45,6 +47,7 @@ class Test(unittest.TestCase):
         capability_server = server.CapabilityServer(ros_package_path)
         capability_server._CapabilityServer__load_capabilities()
         capability_server._CapabilityServer__populate_default_providers()
+        capability_server.shutdown()
 
     def test_invalid_default_provider(self):
         minimal_dir = os.path.join(TEST_DIR, 'unit', 'discovery_workspaces', 'minimal')
@@ -54,6 +57,7 @@ class Test(unittest.TestCase):
         capability_server._CapabilityServer__load_capabilities()
         with assert_raises(SystemExit):
             capability_server._CapabilityServer__populate_default_providers()
+        capability_server.shutdown()
 
     def test_wrong_default_provider(self):
         dc_dir = os.path.join(TEST_DIR, 'unit', 'discovery_workspaces', 'dependent_capabilities')
@@ -64,6 +68,7 @@ class Test(unittest.TestCase):
         capability_server._CapabilityServer__load_capabilities()
         with assert_raises(SystemExit):
             capability_server._CapabilityServer__populate_default_providers()
+        capability_server.shutdown()
 
     def test_event_handler(self):
         invalid_specs_dir = os.path.join(TEST_DIR, 'unit', 'discovery_workspaces', 'invalid_specs')
@@ -80,6 +85,7 @@ class Test(unittest.TestCase):
         msg.type = 'doesnt matter'
         pub.publish(msg)
         rospy.sleep(1)  # Allow time for the publish to happen
+        capability_server.shutdown()
 
 if __name__ == '__main__':
     rospy.init_node(TEST_NAME, anonymous=True)

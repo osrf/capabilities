@@ -77,10 +77,13 @@ class Test(unittest.TestCase):
 
     def test_process_monitoring(self):
         lm = launch_manager.LaunchManager()
-        with assert_raises_regex(RuntimeError, 'Unknown process id'):
-            proc = Mock()
-            proc.pid = -1
-            lm._LaunchManager__monitor_process(proc)
+        try:
+            with assert_raises_regex(RuntimeError, 'Unknown process id'):
+                proc = Mock()
+                proc.pid = -1
+                lm._LaunchManager__monitor_process(proc)
+        finally:
+            lm.stop()
 
 if __name__ == '__main__':
     import rospy

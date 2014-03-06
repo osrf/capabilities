@@ -76,6 +76,7 @@ from capabilities.discovery import package_index_from_package_path
 from capabilities.discovery import spec_file_index_from_package_index
 from capabilities.discovery import spec_index_from_spec_file_index
 
+from capabilities.launch_manager import _special_nodelet_manager_capability
 from capabilities.launch_manager import LaunchManager
 
 from capabilities.msg import Capability
@@ -473,6 +474,14 @@ class CapabilityServer(object):
         # Ignore the `server_ready` event
         if event.type == event.SERVER_READY:
             return
+        # Specially handle the nodelet manager
+        if event.capability == _special_nodelet_manager_capability:
+            if event.type == event.LAUNCHED:
+                return
+            elif event.type == event.TERMINATED:
+                if not rospy.is_shutdown():
+                    rospy.logerr("Capability server's nodelet manager terminated unexpectedly.")
+                    self.shutdown()
         # Update the capability
         capability = event.capability
         with self.__graph_lock:

@@ -7,7 +7,9 @@ install:
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update
-  - sudo apt-get install ros-hydro-roslaunch ros-hydro-rospy ros-hydro-std-msgs ros-hydro-std-srvs ros-hydro-geometry-msgs ros-hydro-message-generation ros-hydro-message-runtime ros-hydro-catkin ros-hydro-rostest ros-hydro-rosservice
+  - sudo apt-get install ros-hydro-nodelet ros-hydro-roslaunch ros-hydro-rospy ros-hydro-std-msgs ros-hydro-std-srvs ros-hydro-geometry-msgs ros-hydro-message-generation ros-hydro-message-runtime ros-hydro-catkin ros-hydro-rostest ros-hydro-rosservice
+# Install image_proc to get a nodelet instaleld as a workaround to https://github.com/ros/pluginlib/pull/22
+  - sudo apt-get install ros-hydro-image-proc
 # command to run tests
 script:
   - source /opt/ros/hydro/setup.bash

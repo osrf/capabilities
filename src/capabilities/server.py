@@ -476,12 +476,11 @@ class CapabilityServer(object):
             return
         # Specially handle the nodelet manager
         if event.capability == _special_nodelet_manager_capability:
-            if event.type == event.LAUNCHED:
-                return
-            elif event.type == event.TERMINATED:
+            if event.type == event.TERMINATED:
                 if not rospy.is_shutdown():
                     rospy.logerr("Capability server's nodelet manager terminated unexpectedly.")
                     self.shutdown()
+            return
         # Update the capability
         capability = event.capability
         with self.__graph_lock:

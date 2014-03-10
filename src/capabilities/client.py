@@ -38,7 +38,9 @@
 Typical usage::
 
     >>> from capabilities.client import Client
-    >>> client = Client(capability_server_node_name='/capability_server_node_name')
+    >>> client = Client()
+    # Use the line below if the capability_server has a different name
+    # client = Client(capability_server_node_name='/capability_server_node_name')
     >>> client.use_capability('foo_pkg/Foo')
     >>> client.use_capability('foo_pkg/Foo')
     >>> client.free_capability('foo_pkg/Foo')
@@ -55,7 +57,11 @@ from capabilities.srv import UseCapability
 
 
 class CapabilitiesClient(object):
-    """Single point of entry for interacting with a remote capability server
+    """Single point of entry for interacting with a remote capability server.
+
+    Instantiation of this class does not check to see if the underlying
+    services are available, call :py:method:`wait_for_services` if you want
+    to ensure that the services are available before continuing.
 
     :param capability_server_node_name: name of the remote capability server
     :type capability_server_node_name: str
@@ -63,17 +69,48 @@ class CapabilitiesClient(object):
     def __init__(self, capability_server_node_name='/capability_server'):
         self._name = capability_server_node_name
         self._bonds = {}
+        self._services = {}
         # Create service proxy for free_capability
         service_name = '{0}/free_capability'.format(capability_server_node_name)
         self.__free_capability = rospy.ServiceProxy(service_name, FreeCapability)
+        self._services['free_capability'] = self.__free_capability
         # Create service proxy for use_capability
         service_name = '{0}/use_capability'.format(capability_server_node_name)
         self.__use_capability = rospy.ServiceProxy(service_name, UseCapability)
+        self._services['use_capability'] = self.__use_capability
+
+    def wait_for_services(self, timeout=None, services=None):
+        """Blocks until the requested services are available.
+
+        Services are waited on one at a time. Therefore, if a non-None value
+        for timeout is given, and one or more services are being waited on,
+        the full timeout will be given to each wait, meaning that the total
+        run time of this function can exceed the timeout provided.
+
+        :param timeout: Seconds to wait for the services before returning False.
+            If None is passed, then this will block indefinitely until the
+            services are available.
+        :type timeout: float
+        :param services: List of services to wait on.
+            If None is passed, then this will check all the services.
+        :type services: list
+        :returns: True is the services are available, False otherwise (timeout)
+        :rtype: bool
+        """
+        services = self._services.keys() if services is None else services
+        for service in services:
+            if service not in self._services:
+                raise ValueError(
+                    "Service '{0}' is not a valid service and cannot be waited on. These are the valid services: {1}"
+                    .format(service, self._services.keys()))
+            if self.__wait_for_service(self._services[service], timeout) is False:
+                return False
+        return True
 
     def __wait_for_service(self, service, timeout):
         try:
             service.wait_for_service(timeout)
-        except rospy.ROSException as exc:
+        except rospy.ROSException:
             rospy.logwarn("Timed out after waiting '{0}' seconds for service '{1}' to be available."
                           .format(timeout, service.resolved_name))
             return False

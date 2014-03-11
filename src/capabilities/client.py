@@ -48,10 +48,13 @@ Typical usage::
 
 """
 
+import atexit
+
 import rospy
 
 from bondpy.bondpy import Bond
 
+from capabilities.srv import EstablishBond
 from capabilities.srv import FreeCapability
 from capabilities.srv import UseCapability
 
@@ -68,8 +71,14 @@ class CapabilitiesClient(object):
     """
     def __init__(self, capability_server_node_name='/capability_server'):
         self._name = capability_server_node_name
-        self._bonds = {}
+        self._bond = None
+        self._bond_id = None
+        self._used_capabilities = set([])
         self._services = {}
+        # Create service proxy for establish_bond
+        service_name = '{0}/establish_bond'.format(capability_server_node_name)
+        self.__establish_bond = rospy.ServiceProxy(service_name, EstablishBond)
+        self._services['establish_bond'] = self.__establish_bond
         # Create service proxy for free_capability
         service_name = '{0}/free_capability'.format(capability_server_node_name)
         self.__free_capability = rospy.ServiceProxy(service_name, FreeCapability)
@@ -78,6 +87,8 @@ class CapabilitiesClient(object):
         service_name = '{0}/use_capability'.format(capability_server_node_name)
         self.__use_capability = rospy.ServiceProxy(service_name, UseCapability)
         self._services['use_capability'] = self.__use_capability
+        # Register atexit shutdown
+        atexit.register(self.shutdown)
 
     def wait_for_services(self, timeout=None, services=None):
         """Blocks until the requested services are available.
@@ -98,11 +109,12 @@ class CapabilitiesClient(object):
         :rtype: bool
         """
         services = self._services.keys() if services is None else services
+        assert isinstance(services, list), services
         for service in services:
             if service not in self._services:
                 raise ValueError(
                     "Service '{0}' is not a valid service and cannot be waited on. These are the valid services: {1}"
-                    .format(service, self._services.keys()))
+                    .format(service, list(self._services.keys())))
             if self.__wait_for_service(self._services[service], timeout) is False:
                 return False
         return True
@@ -115,6 +127,42 @@ class CapabilitiesClient(object):
                           .format(timeout, service.resolved_name))
             return False
         return True
+
+    def establish_bond(self, timeout=None):
+        """Establishes a bond using the ~establish_bond service call
+
+        The bond id which is returned by the service call is stored internally
+        and used implicitly by the use/free capabilities functions.
+
+        If establish_bond had previously been called, then the old bond will be
+        broken, which will result in any capability uses under that bond to be
+        implicitly freed.
+
+        This function is called implicitly by :py:method:`use_capability` if
+        no bond exists.
+
+        This function will block waiting for the service call to become
+        available and to wait for the bond to be established. In both cases
+        the timeout parameter is used.
+
+        None is returned if the timeout occurs while waiting on the service
+        to become available or while waiting for the bond to form.
+
+        :param timeout: time in seconds to wait for the service to be available
+        :returns: the bond_id received from the server or None on failure
+        :rtype: str
+        """
+        if self.__wait_for_service(self.__establish_bond, timeout) is False:
+            return None
+        resp = self.__establish_bond()
+        if not resp.bond_id:
+            return None
+        self._bond_id = resp.bond_id
+        self._bond = Bond('{0}/bonds'.format(self._name), self._bond_id)
+        self._bond.start()
+        if self._bond.wait_until_formed(timeout) is False:
+            return None
+        return self._bond_id
 
     def free_capability(self, capability_interface, timeout=None):
         """Free's a previously used capability.
@@ -129,22 +177,18 @@ class CapabilitiesClient(object):
         :returns: True if successful, otherwise False
         :rtype: bool
         """
-        if capability_interface not in self._bonds:
+        if capability_interface not in self._used_capabilities:
             rospy.logerr("Cannot free capability interface '{0}', because it was not first used."
                          .format(capability_interface))
             return False
-        if not self.__wait_for_service(self.__free_capability, timeout):
+        if self.__wait_for_service(self.__free_capability, timeout) is False:
             return False
-        bond = self._bonds[capability_interface].pop()
-        self.__free_capability.call(capability_interface, bond.id)
-        bond.break_bond()
+        self.__free_capability.call(capability_interface, self._bond_id)
         return True
 
     def shutdown(self):
-        """Cleanly frees any used capabilities and bonds."""
-        for bonds in self._bonds.values():
-            for bond in bonds:
-                bond.break_bond()
+        """Cleanly frees any used capabilities."""
+        self._bond.break_bond()
 
     def use_capability(self, capability_interface, preferred_provider=None, timeout=None):
         """Declares that this capability is being used.
@@ -164,14 +208,12 @@ class CapabilitiesClient(object):
         :returns: True if successful, otherwise False
         :rtype: bool
         """
-        if not self.__wait_for_service(self.__use_capability, timeout):
+        # If no bond has been established, establish one first
+        if self._bond is None:
+            if self.establish_bond(timeout) is None:
+                return False
+        if self.__wait_for_service(self.__use_capability, timeout) is False:
             return False
-        resp = self.__use_capability.call(capability_interface, preferred_provider or '')
-        if not resp.bond_id:
-            # The service call failed
-            return False
-        if capability_interface not in self._bonds:
-            self._bonds[capability_interface] = []
-        self._bonds[capability_interface].append(Bond("{0}/bonds".format(self._name), resp.bond_id))
-        self._bonds[capability_interface][-1].start()
+        self.__use_capability.call(capability_interface, preferred_provider or '', self._bond_id)
+        self._used_capabilities.add(capability_interface)
         return True

@@ -16,6 +16,7 @@ add_service_files(FILES
     GetCapabilitySpec.srv
     GetCapabilitySpecs.srv
     GetInterfaces.srv
+    GetNodeletManagerName.srv
     GetProviders.srv
     GetRunningCapabilities.srv
     GetSemanticInterfaces.srv

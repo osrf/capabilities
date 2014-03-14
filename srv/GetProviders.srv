@@ -1,3 +1,4 @@
 string interface
 ---
 string[] providers
+string default_provider

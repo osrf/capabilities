@@ -734,12 +734,16 @@ class CapabilityServer(object):
 
     def _handle_get_providers(self, req):
         if req.interface:
+            if req.interface not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
+                raise RuntimeError("Capability Interface '{0}' not found.".format(req.interface))
             providers = [n
                          for n, p in self.__spec_index.providers.items()
                          if p.implements == req.interface]
+            default_provider = self.__default_providers[req.interface]
         else:
             providers = self.__spec_index.provider_names
-        return GetProvidersResponse(providers)
+            default_provider = ''
+        return GetProvidersResponse(providers, default_provider)
 
     def handle_get_semantic_interfaces(self, req):
         return self.__catch_and_log(self._handle_get_semantic_interfaces, req)

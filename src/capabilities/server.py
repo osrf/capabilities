@@ -61,6 +61,8 @@ from capabilities.srv import GetCapabilitySpecs
 from capabilities.srv import GetCapabilitySpecsResponse
 from capabilities.srv import GetInterfaces
 from capabilities.srv import GetInterfacesResponse
+from capabilities.srv import GetNodeletManagerName
+from capabilities.srv import GetNodeletManagerNameResponse
 from capabilities.srv import GetProviders
 from capabilities.srv import GetProvidersResponse
 from capabilities.srv import GetSemanticInterfaces
@@ -332,6 +334,10 @@ class CapabilityServer(object):
         self.__capability_spec = rospy.Service(
             '~get_capability_spec', GetCapabilitySpec,
             self.handle_get_capability_spec)
+
+        self.__get_nodelet_manager_name_service = rospy.Service(
+            '~get_nodelet_manager_name', GetNodeletManagerName,
+            self.handle_get_nodelet_manager_name)
 
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)
@@ -763,6 +769,14 @@ class CapabilityServer(object):
             for dep in rdepends:
                 running_capability.dependent_capabilities.append(Capability(dep.interface, dep.name))
             resp.running_capabilities.append(running_capability)
+        return resp
+
+    def handle_get_nodelet_manager_name(self, req):
+        return self.__catch_and_log(self._handle_get_nodelet_manager_name, req)
+
+    def _handle_get_nodelet_manager_name(self, req):
+        resp = GetNodeletManagerNameResponse()
+        resp.nodelet_manager_name = self.__launch_manager.nodelet_manager_name
         return resp
 
 

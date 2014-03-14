@@ -100,6 +100,10 @@ class LaunchManager(object):
         self.__nodelet_manager_name = nodelet_manager_name or (rospy.get_name().lstrip('/') + '_nodelet_manager')
         self.__start_nodelet_manager()
 
+    @property
+    def nodelet_manager_name(self):
+        return self.__nodelet_manager_name
+
     def stop(self):
         """Stops the launch manager, also stopping any running launch files"""
         if self.stopping:

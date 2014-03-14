@@ -13,7 +13,9 @@ add_message_files(FILES
 )
 
 add_service_files(FILES
+    EstablishBond.srv
     GetCapabilitySpec.srv
+    FreeCapability.srv
     GetCapabilitySpecs.srv
     GetInterfaces.srv
     GetNodeletManagerName.srv
@@ -22,6 +24,7 @@ add_service_files(FILES
     GetSemanticInterfaces.srv
     StartCapability.srv
     StopCapability.srv
+    UseCapability.srv
 )
 
 generate_messages(DEPENDENCIES std_msgs std_srvs)

@@ -49,14 +49,21 @@ import os
 import sys
 import threading
 import traceback
+import uuid
 
 import rospy
+
+from bondpy.bondpy import Bond
 
 from std_srvs.srv import Empty
 from std_srvs.srv import EmptyResponse
 
+from capabilities.srv import EstablishBond
+from capabilities.srv import EstablishBondResponse
 from capabilities.srv import GetCapabilitySpec
 from capabilities.srv import GetCapabilitySpecResponse
+from capabilities.srv import FreeCapability
+from capabilities.srv import FreeCapabilityResponse
 from capabilities.srv import GetCapabilitySpecs
 from capabilities.srv import GetCapabilitySpecsResponse
 from capabilities.srv import GetInterfaces
@@ -73,6 +80,8 @@ from capabilities.srv import StartCapability
 from capabilities.srv import StartCapabilityResponse
 from capabilities.srv import StopCapability
 from capabilities.srv import StopCapabilityResponse
+from capabilities.srv import UseCapability
+from capabilities.srv import UseCapabilityResponse
 
 from capabilities.discovery import package_index_from_package_path
 from capabilities.discovery import spec_file_index_from_package_index
@@ -135,6 +144,11 @@ class CapabilityInstance(object):
         self.depends_on = [x for x in provider.dependencies]
         self.canceled = False
         self.started_by = started_by
+        self.bonds = {}  # {bond_id: reference_count}
+
+    @property
+    def reference_count(self):
+        return sum(list(self.bonds.values()))
 
     @property
     def state(self):
@@ -270,6 +284,7 @@ class CapabilityServer(object):
         self.__blacklist = None
         self.__default_providers = {}
         self.__missing_default_provider_is_an_error = rospy.get_param('~missing_default_provider_is_an_error', False)
+        self.__bonds = {}
 
     def spin(self):
         """Starts the capability server by setting up ROS comms, then spins"""
@@ -301,6 +316,8 @@ class CapabilityServer(object):
 
         self.__load_capabilities()
 
+        self.__bond_topic = rospy.get_name() + "/bonds"
+
         # Collect default arguments
         self.__populate_default_providers()
 
@@ -309,6 +326,15 @@ class CapabilityServer(object):
 
         self.__stop_capability_service = rospy.Service(
             '~stop_capability', StopCapability, self.handle_stop_capability)
+
+        self.__establish_bond_service = rospy.Service(
+            '~establish_bond', EstablishBond, self.handle_establish_bond)
+
+        self.__free_capability_service = rospy.Service(
+            '~free_capability', FreeCapability, self.handle_free_capability)
+
+        self.__use_capability_service = rospy.Service(
+            '~use_capability', UseCapability, self.handle_use_capability)
 
         self.__reload_service = rospy.Service(
             '~reload_capabilities', Empty, self.handle_reload_request)
@@ -714,6 +740,94 @@ class CapabilityServer(object):
             raise RuntimeError("No Capability '{0}' running".format(capability))
         self.__stop_capability(capability)
         return StopCapabilityResponse(True)
+
+    def handle_establish_bond(self, req):
+        return self.__catch_and_log(self._handle_establish_bond, req)
+
+    def _handle_establish_bond(self, req):
+        rospy.loginfo("Request to establish a bond")
+        bond_id = str(uuid.uuid1())
+
+        def on_formed():
+            rospy.loginfo("Bond formed with bond_id of '{0}'"
+                          .format(bond_id))
+
+        def on_broken():
+            # if bond_id in self.__bonds:
+            rospy.loginfo("Bond with bond id '{0}' was broken, freeing associated capabilities"
+                          .format(bond_id))
+            self.__free_capabilities_by_bond_id(bond_id)
+            del self.__bonds[bond_id]
+
+        self.__bonds[bond_id] = Bond(self.__bond_topic, bond_id, on_broken=on_broken, on_formed=on_formed)
+        self.__bonds[bond_id].start()
+        return EstablishBondResponse(bond_id)
+
+    def __free_capabilities_by_bond_id(self, bond_id):
+        if bond_id in self.__bonds:
+            for capability in self.__capability_instances.values():
+                if bond_id in capability.bonds:
+                    del capability.bonds[bond_id]
+                    if capability.reference_count == 0:
+                        rospy.loginfo("Capability '{0}' being stopped because it has zero references"
+                                      .format(capability.interface))
+                        self.__stop_capability(capability.interface)
+
+    def __free_capability(self, capability_name, bond_id):
+        if capability_name not in self.__capability_instances:
+            raise RuntimeError("No Capability '{0}' in use".format(capability_name))
+        capability = self.__capability_instances[capability_name]
+        if bond_id not in capability.bonds:
+            raise RuntimeError("Given bond_id '{0}' not associated with given capability '{1}'"
+                               .format(bond_id, capability_name))
+        if capability.bonds[bond_id] == 0:
+            raise RuntimeError("Cannot free capability '{0}' for bond_id '{1}', it already has a reference count of 0"
+                               .format(capability_name, bond_id))
+        capability.bonds[bond_id] -= 1
+        if capability.reference_count == 0:
+            rospy.loginfo("Capability '{0}' being stopped because it has zero references"
+                          .format(capability.interface))
+            self.__stop_capability(capability.interface)
+
+    def handle_free_capability(self, req):
+        return self.__catch_and_log(self._handle_free_capability, req)
+
+    def _handle_free_capability(self, req):
+        rospy.loginfo("Request to free usage of capability '{0}' (bond id '{1}')"
+                      .format(req.capability, req.bond_id))
+        self.__free_capability(req.capability, req.bond_id)
+        return FreeCapabilityResponse()
+
+    def handle_use_capability(self, req):
+        return self.__catch_and_log(self._handle_use_capability, req)
+
+    def _handle_use_capability(self, req):
+        msg = "Request to use capability '{0}'".format(req.capability)
+        if req.preferred_provider:
+            msg += " with provider '{0}'".format(req.preferred_provider)
+        rospy.loginfo(msg)
+        # Make sure the bond_id is valid
+        if req.bond_id not in self.__bonds:
+            raise RuntimeError("Invalid bond_id given to ~use_capability: '{0}'".format(req.bond_id))
+        # Start the capability if it is not already running
+        if req.capability not in self.__capability_instances:
+            ret = self.__start_capability(req.capability, req.preferred_provider)
+            if not ret:
+                raise RuntimeError("Failed to start capability '{0}' with preferred provider '{1}'"
+                                   .format(req.capability, req.preferred_provider))
+        assert req.capability in self.__capability_instances  # Should be true
+        # Get a handle ont he capability
+        capability = self.__capability_instances[req.capability]
+        if req.preferred_provider and capability.name != req.preferred_provider:
+            raise RuntimeError("Requested to use capability '{0}' with preferred provider '{1}', "
+                               .format(capability.interface, req.preferred_provider) +
+                               "but the capability is already running with provider '{0}'"
+                               .format(capability.name))
+        if req.bond_id not in capability.bonds:
+            capability.bonds[req.bond_id] = 0
+        capability.bonds[req.bond_id] += 1
+
+        return UseCapabilityResponse()
 
     def handle_reload_request(self, req):
         return self.__catch_and_log(self._handle_reload_request, req)

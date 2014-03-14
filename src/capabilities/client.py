@@ -160,7 +160,7 @@ class CapabilitiesClient(object):
         self._bond_id = resp.bond_id
         self._bond = Bond('{0}/bonds'.format(self._name), self._bond_id)
         self._bond.start()
-        if self._bond.wait_until_formed(timeout) is False:
+        if self._bond.wait_until_formed(rospy.Duration(timeout)) is False:
             return None
         return self._bond_id
 
@@ -188,7 +188,8 @@ class CapabilitiesClient(object):
 
     def shutdown(self):
         """Cleanly frees any used capabilities."""
-        self._bond.break_bond()
+        if self._bond:
+            self._bond.break_bond()
 
     def use_capability(self, capability_interface, preferred_provider=None, timeout=None):
         """Declares that this capability is being used.

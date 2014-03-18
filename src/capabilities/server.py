@@ -894,7 +894,10 @@ class CapabilityServer(object):
 
     def _handle_get_nodelet_manager_name(self, req):
         resp = GetNodeletManagerNameResponse()
-        resp.nodelet_manager_name = self.__launch_manager.nodelet_manager_name
+        resp.nodelet_manager_name = rospy.get_namespace()
+        if not resp.nodelet_manager_name.endswith('/'):
+            resp.nodelet_manager_name += "/"
+        resp.nodelet_manager_name += self.__launch_manager.nodelet_manager_name
         return resp
 
 

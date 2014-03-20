@@ -276,7 +276,10 @@ class CapabilityServer(object):
         self.__spec_index = None
         self.__graph_lock = threading.Lock()
         self.__capability_instances = {}
-        self.__launch_manager = LaunchManager(screen=bool(rospy.get_param('~use_screen', screen)))
+        self.__launch_manager = LaunchManager(
+            screen=bool(rospy.get_param('~use_screen', screen)),
+            nodelet_manager_name=rospy.get_param('~nodelet_manager_name', None)
+        )
         self.__debug = False
         self.__package_whitelist = None
         self.__package_blacklist = None
@@ -894,7 +897,10 @@ class CapabilityServer(object):
 
     def _handle_get_nodelet_manager_name(self, req):
         resp = GetNodeletManagerNameResponse()
-        resp.nodelet_manager_name = self.__launch_manager.nodelet_manager_name
+        resp.nodelet_manager_name = rospy.get_namespace()
+        if not resp.nodelet_manager_name.endswith('/'):
+            resp.nodelet_manager_name += "/"
+        resp.nodelet_manager_name += self.__launch_manager.nodelet_manager_name
         return resp
 
 

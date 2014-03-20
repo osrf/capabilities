@@ -97,7 +97,7 @@ class LaunchManager(object):
         self.stopping = False
         self.__quiet = quiet
         self.__screen = screen
-        self.__nodelet_manager_name = nodelet_manager_name or (rospy.get_name().lstrip('/') + '_nodelet_manager')
+        self.__nodelet_manager_name = nodelet_manager_name or (rospy.get_name().split('/')[-1] + '_nodelet_manager')
         self.__start_nodelet_manager()
 
     @property

@@ -71,7 +71,7 @@ class Test(unittest.TestCase):
         assert 'minimal_pkg/SpecificMinimal' in resp.semantic_interfaces, resp
         # get nodelet manager name
         resp = call_service('/capability_server/get_nodelet_manager_name')
-        assert resp.nodelet_manager_name == 'capability_server_nodelet_manager', resp
+        assert resp.nodelet_manager_name == '/capability_server_nodelet_manager', resp
 
     def test_start_stop_capabilities(self):
         # fail to start interface without a provider

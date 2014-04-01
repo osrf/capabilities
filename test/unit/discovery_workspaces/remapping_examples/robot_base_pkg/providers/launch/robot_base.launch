@@ -1,0 +1,3 @@
+<launch>
+    <node name="robot_base" pkg="robot_base_pkg" type="robot_base.py" output="screen" />
+</launch>

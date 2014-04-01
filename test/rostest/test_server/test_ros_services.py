@@ -65,7 +65,7 @@ class Test(unittest.TestCase):
         assert resp.default_provider == '', resp
         # fail to get providers for non-existent interface
         with assert_raises(ServiceException):
-            call_service('/capability_server/get_providers', 'not_a_pkg/NotAnInterface')
+            call_service('/capability_server/get_providers', 'not_a_pkg/NotAnInterface', False)
         # get semantic interfaces
         resp = call_service('/capability_server/get_semantic_interfaces')
         assert 'minimal_pkg/SpecificMinimal' in resp.semantic_interfaces, resp

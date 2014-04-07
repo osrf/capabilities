@@ -74,6 +74,8 @@ from capabilities.srv import GetProviders
 from capabilities.srv import GetProvidersResponse
 from capabilities.srv import GetSemanticInterfaces
 from capabilities.srv import GetSemanticInterfacesResponse
+from capabilities.srv import GetRemappings
+from capabilities.srv import GetRemappingsResponse
 from capabilities.srv import GetRunningCapabilities
 from capabilities.srv import GetRunningCapabilitiesResponse
 from capabilities.srv import StartCapability
@@ -93,6 +95,7 @@ from capabilities.launch_manager import LaunchManager
 from capabilities.msg import Capability
 from capabilities.msg import CapabilityEvent
 from capabilities.msg import CapabilitySpec
+from capabilities.msg import Remapping
 from capabilities.msg import RunningCapability
 
 from capabilities.specs.interface import capability_interface_from_string
@@ -367,6 +370,10 @@ class CapabilityServer(object):
         self.__get_nodelet_manager_name_service = rospy.Service(
             '~get_nodelet_manager_name', GetNodeletManagerName,
             self.handle_get_nodelet_manager_name)
+
+        self.__get_remappings_service = rospy.Service(
+            '~get_remappings', GetRemappings,
+            self.handle_get_remappings)
 
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)
@@ -910,6 +917,57 @@ class CapabilityServer(object):
         if not resp.nodelet_manager_name.endswith('/'):
             resp.nodelet_manager_name += "/"
         resp.nodelet_manager_name += self.__launch_manager.nodelet_manager_name
+        return resp
+
+    def handle_get_remappings(self, req):
+        return self.__catch_and_log(self._handle_get_remappings, req)
+
+    def _handle_get_remappings(self, req):
+        interface = None
+        if req.spec in self.__capability_instances.keys():
+            interface = self.__capability_instances[req.spec]
+        else:
+            providers = dict([(i.provider.name, i) for i in self.__capability_instances.values()])
+            if req.spec not in providers:
+                raise RuntimeError("Spec '{0}' is neither a running Interface nor a running Provider."
+                                   .format(req.spec))
+            interface = providers[req.spec]
+        resp = GetRemappingsResponse()
+        remappings = {
+            'topics': {},
+            'services': {},
+            'actions': {},
+            'parameters': {}
+        }
+        # Iterate this instance and its recursive dependencies
+        for iface in self.__get_capability_instances_from_provider(interface.provider):
+            # For each iterate over their remappings and add them to the combined remappings,
+            # flattening the remappings as you go
+            for map_type, mapping in iface.provider.remappings_by_type.items():
+                assert map_type in remappings
+                for key, value in mapping.items():
+                    occurrances = remappings[map_type].values().count(key)
+                    assert occurrances <= 1
+                    if occurrances == 1:
+                        # The key is remapping a previously remapped thing
+                        # So collapse it
+                        key_ = None
+                        for k, v in remappings[map_type].items():
+                            if key == v:
+                                key_ = k
+                                break
+                        assert key_ is not None, (mapping, remappings[map_type], key, value)
+                        remappings[map_type][key_] = value
+                    else:
+                        # The key is not something that has been previously remapped
+                        remappings[map_type][key] = value
+        for map_type, mapping in remappings.items():
+            resp_mapping = getattr(resp, map_type)
+            for key, value in mapping.items():
+                remapping = Remapping()
+                remapping.key = key
+                remapping.value = value
+                resp_mapping.append(remapping)
         return resp
 
 

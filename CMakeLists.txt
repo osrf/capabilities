@@ -9,6 +9,7 @@ add_message_files(FILES
     Capability.msg
     CapabilityEvent.msg
     CapabilitySpec.msg
+    Remapping.msg
     RunningCapability.msg
 )
 
@@ -20,6 +21,7 @@ add_service_files(FILES
     GetInterfaces.srv
     GetNodeletManagerName.srv
     GetProviders.srv
+    GetRemappings.srv
     GetRunningCapabilities.srv
     GetSemanticInterfaces.srv
     StartCapability.srv

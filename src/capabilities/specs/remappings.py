@@ -57,12 +57,16 @@ class RemapCollection(object):
         }
 
     def __str__(self):
-        remapping_strs = ["'{0}' -> '{1}'".format(f, t) for f, t in self.remappings.iteritems()]
+        remapping_strs = ["'{0}' -> '{1}'".format(f, t) for f, t in self.remappings.items()]
         return "remappings:\n{0}".format("\n".join(['  ' + s for s in remapping_strs]))
 
     @property
     def remappings(self):
-        return dict([(k, v) for remaps in self.__type_mapping.values() for k, v in remaps.iteritems()])
+        return dict([(k, v) for remaps in self.__type_mapping.values() for k, v in remaps.items()])
+
+    @property
+    def remappings_by_type(self):
+        return dict(self.__type_mapping)
 
     def add_remapping(self, mapping_type, map_from, map_to):
         # Assert that the mapping_type is valid
@@ -78,6 +82,6 @@ class RemapCollection(object):
             self.__type_mapping[mapping_type][map_from] = map_to
 
     def add_remappings_by_dict(self, remappings_dict):
-        for mapping_type, remappings in remappings_dict.iteritems():
-            for src, dst in remappings.iteritems():
+        for mapping_type, remappings in remappings_dict.items():
+            for src, dst in remappings.items():
                 self.add_remapping(mapping_type, src, dst)

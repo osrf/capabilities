@@ -243,6 +243,10 @@ class CapabilityProvider(object):
     def remappings(self):
         return self.__remap_collection.remappings
 
+    @property
+    def remappings_by_type(self):
+        return self.__remap_collection.remappings_by_type
+
     def add_remappings_by_dict(self, remappings_dict):
         self.__remap_collection.add_remappings_by_dict(remappings_dict)
 

@@ -149,6 +149,7 @@ class CapabilitiesClient(object):
         to become available or while waiting for the bond to form.
 
         :param timeout: time in seconds to wait for the service to be available
+        :type timeout: float
         :returns: the bond_id received from the server or None on failure
         :rtype: str
         """
@@ -160,7 +161,8 @@ class CapabilitiesClient(object):
         self._bond_id = resp.bond_id
         self._bond = Bond('{0}/bonds'.format(self._name), self._bond_id)
         self._bond.start()
-        if self._bond.wait_until_formed(rospy.Duration(timeout)) is False:
+        timeout_dur = None if timeout is None else rospy.Duration.from_sec(timeout)
+        if self._bond.wait_until_formed(timeout_dur) is False:
             return None
         return self._bond_id
 
@@ -173,7 +175,7 @@ class CapabilitiesClient(object):
         :param capability_interface: Name of the capability interface to free up
         :type capability_interface: str
         :param timeout: time to wait on service to be available (optional)
-        :type timeout: rospy.Duration
+        :type timeout: float
         :returns: True if successful, otherwise False
         :rtype: bool
         """
@@ -205,7 +207,7 @@ class CapabilitiesClient(object):
         :param preferred_provider: preferred provider or None for default provider (optional)
         :type preferred_provider: str
         :param timeout: time to wait on service to be available (optional)
-        :type timeout: rospy.Duration
+        :type timeout: float
         :returns: True if successful, otherwise False
         :rtype: bool
         """

@@ -914,8 +914,7 @@ class CapabilityServer(object):
     def _handle_get_nodelet_manager_name(self, req):
         resp = GetNodeletManagerNameResponse()
         resp.nodelet_manager_name = rospy.get_namespace()
-        if not resp.nodelet_manager_name.endswith('/'):
-            resp.nodelet_manager_name += "/"
+        resp.nodelet_manager_name += "" if resp.nodelet_manager_name.endswith('/') else "/"
         resp.nodelet_manager_name += self.__launch_manager.nodelet_manager_name
         return resp
 
@@ -940,27 +939,18 @@ class CapabilityServer(object):
             'parameters': {}
         }
         # Iterate this instance and its recursive dependencies
-        for iface in self.__get_capability_instances_from_provider(interface.provider):
+        for iface in reversed(self.__get_capability_instances_from_provider(interface.provider)):
             # For each iterate over their remappings and add them to the combined remappings,
             # flattening the remappings as you go
             for map_type, mapping in iface.provider.remappings_by_type.items():
                 assert map_type in remappings
+                remappings[map_type].update(mapping)
+            # Collapse remapping chains
+            for mapping in remappings.values():
                 for key, value in mapping.items():
-                    occurrances = remappings[map_type].values().count(key)
-                    assert occurrances <= 1
-                    if occurrances == 1:
-                        # The key is remapping a previously remapped thing
-                        # So collapse it
-                        key_ = None
-                        for k, v in remappings[map_type].items():
-                            if key == v:
-                                key_ = k
-                                break
-                        assert key_ is not None, (mapping, remappings[map_type], key, value)
-                        remappings[map_type][key_] = value
-                    else:
-                        # The key is not something that has been previously remapped
-                        remappings[map_type][key] = value
+                    if value in mapping:
+                        mapping[key] = mapping[value]
+                        del mapping[value]
         for map_type, mapping in remappings.items():
             resp_mapping = getattr(resp, map_type)
             for key, value in mapping.items():

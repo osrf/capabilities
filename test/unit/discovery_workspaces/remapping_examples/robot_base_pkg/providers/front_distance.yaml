@@ -9,4 +9,4 @@ depends_on:
         provider: 'robot_base_pkg/distance_front'
 remappings:
   topics:
-    'front/distance': 'robot/front/distance'
+    'front/distance': 'distance'

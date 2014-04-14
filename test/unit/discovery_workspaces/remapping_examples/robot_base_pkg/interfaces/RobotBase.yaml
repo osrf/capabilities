@@ -1,0 +1,12 @@
+%YAML 1.1
+---
+name: RobotBase
+spec_version: 1
+spec_type: interface
+interface:
+    topics:
+        provides:
+            'robot/front/distance':
+                type: 'std_msgs/Float32'
+            'robot/rear/distance':
+                type: 'std_msgs/Float32'

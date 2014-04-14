@@ -17,6 +17,7 @@ coverage:
 	-rm ~/.ros/.coverage
 	-rm ${BUILD_DIR}/.coverage
 	-rm ./.coverage
+	-cd ${BUILD_DIR} && mkdir -p src
 	-ln -s ${SRC_DIR} ${BUILD_DIR}/src
 	cd ${BUILD_DIR} && catkin_make
 	cd ${BUILD_DIR} && catkin_make tests

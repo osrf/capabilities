@@ -1,0 +1,12 @@
+%YAML 1.1
+---
+name: rear_distance
+spec_version: 1
+spec_type: provider
+implements: robot_base_pkg/RearDistance
+depends_on:
+    'robot_base_pkg/Distance':
+        provider: 'robot_base_pkg/distance_rear'
+remappings:
+  topics:
+    'rear/distance': 'distance'

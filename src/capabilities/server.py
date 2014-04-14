@@ -74,6 +74,8 @@ from capabilities.srv import GetProviders
 from capabilities.srv import GetProvidersResponse
 from capabilities.srv import GetSemanticInterfaces
 from capabilities.srv import GetSemanticInterfacesResponse
+from capabilities.srv import GetRemappings
+from capabilities.srv import GetRemappingsResponse
 from capabilities.srv import GetRunningCapabilities
 from capabilities.srv import GetRunningCapabilitiesResponse
 from capabilities.srv import StartCapability
@@ -93,6 +95,7 @@ from capabilities.launch_manager import LaunchManager
 from capabilities.msg import Capability
 from capabilities.msg import CapabilityEvent
 from capabilities.msg import CapabilitySpec
+from capabilities.msg import Remapping
 from capabilities.msg import RunningCapability
 
 from capabilities.specs.interface import capability_interface_from_string
@@ -367,6 +370,10 @@ class CapabilityServer(object):
         self.__get_nodelet_manager_name_service = rospy.Service(
             '~get_nodelet_manager_name', GetNodeletManagerName,
             self.handle_get_nodelet_manager_name)
+
+        self.__get_remappings_service = rospy.Service(
+            '~get_remappings', GetRemappings,
+            self.handle_get_remappings)
 
         rospy.Subscriber(
             '~events', CapabilityEvent, self.handle_capability_events)
@@ -644,14 +651,25 @@ class CapabilityServer(object):
             instances.append(CapabilityInstance(curr, curr_path, started_by=reason))
         return instances
 
+    def __get_providers_for_interface(self, interface, allow_semantic=False):
+        valid_interfaces = [interface]
+        if allow_semantic:
+            # Add semantic interfaces which redefine this one
+            valid_interfaces.extend(
+                [k for k, v in self.__spec_index.semantic_interfaces.items()
+                 if v.redefines == interface]
+            )
+        providers = dict([(n, p)
+                          for n, p in self.__spec_index.providers.items()
+                          if p.implements in valid_interfaces])
+        return providers  # Could be empty
+
     def __start_capability(self, capability, preferred_provider):
         if capability not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
             raise RuntimeError("Capability '{0}' not found.".format(capability))
         # If no preferred provider is given, use the default
         preferred_provider = preferred_provider or self.__default_providers[capability]
-        providers = dict([(n, p)
-                          for n, p in self.__spec_index.providers.items()
-                          if p.implements == capability])
+        providers = self.__get_providers_for_interface(capability, allow_semantic=True)
         if preferred_provider not in providers:
             raise RuntimeError(
                 "Capability Provider '{0}' not found for Capability '{1}'"
@@ -853,9 +871,7 @@ class CapabilityServer(object):
         if req.interface:
             if req.interface not in self.__spec_index.interfaces.keys() + self.__spec_index.semantic_interfaces.keys():
                 raise RuntimeError("Capability Interface '{0}' not found.".format(req.interface))
-            providers = [n
-                         for n, p in self.__spec_index.providers.items()
-                         if p.implements == req.interface]
+            providers = self.__get_providers_for_interface(req.interface, allow_semantic=req.include_semantic).keys()
             default_provider = self.__default_providers[req.interface]
         else:
             providers = self.__spec_index.provider_names
@@ -898,9 +914,50 @@ class CapabilityServer(object):
     def _handle_get_nodelet_manager_name(self, req):
         resp = GetNodeletManagerNameResponse()
         resp.nodelet_manager_name = rospy.get_namespace()
-        if not resp.nodelet_manager_name.endswith('/'):
-            resp.nodelet_manager_name += "/"
+        resp.nodelet_manager_name += "" if resp.nodelet_manager_name.endswith('/') else "/"
         resp.nodelet_manager_name += self.__launch_manager.nodelet_manager_name
+        return resp
+
+    def handle_get_remappings(self, req):
+        return self.__catch_and_log(self._handle_get_remappings, req)
+
+    def _handle_get_remappings(self, req):
+        interface = None
+        if req.spec in self.__capability_instances.keys():
+            interface = self.__capability_instances[req.spec]
+        else:
+            providers = dict([(i.provider.name, i) for i in self.__capability_instances.values()])
+            if req.spec not in providers:
+                raise RuntimeError("Spec '{0}' is neither a running Interface nor a running Provider."
+                                   .format(req.spec))
+            interface = providers[req.spec]
+        resp = GetRemappingsResponse()
+        remappings = {
+            'topics': {},
+            'services': {},
+            'actions': {},
+            'parameters': {}
+        }
+        # Iterate this instance and its recursive dependencies
+        for iface in reversed(self.__get_capability_instances_from_provider(interface.provider)):
+            # For each iterate over their remappings and add them to the combined remappings,
+            # flattening the remappings as you go
+            for map_type, mapping in iface.provider.remappings_by_type.items():
+                assert map_type in remappings
+                remappings[map_type].update(mapping)
+            # Collapse remapping chains
+            for mapping in remappings.values():
+                for key, value in mapping.items():
+                    if value in mapping:
+                        mapping[key] = mapping[value]
+                        del mapping[value]
+        for map_type, mapping in remappings.items():
+            resp_mapping = getattr(resp, map_type)
+            for key, value in mapping.items():
+                remapping = Remapping()
+                remapping.key = key
+                remapping.value = value
+                resp_mapping.append(remapping)
         return resp
 
 

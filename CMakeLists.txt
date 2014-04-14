@@ -9,6 +9,7 @@ add_message_files(FILES
     Capability.msg
     CapabilityEvent.msg
     CapabilitySpec.msg
+    Remapping.msg
     RunningCapability.msg
 )
 
@@ -20,6 +21,7 @@ add_service_files(FILES
     GetInterfaces.srv
     GetNodeletManagerName.srv
     GetProviders.srv
+    GetRemappings.srv
     GetRunningCapabilities.srv
     GetSemanticInterfaces.srv
     StartCapability.srv
@@ -44,6 +46,7 @@ if(CATKIN_ENABLE_TESTING)
     add_rostest(test/rostest/test_server/test_dependent_capabilities.test)
     add_rostest(test/rostest/test_server/test_invalid_specs.test)
     add_rostest(test/rostest/test_server/test_package_white_black_lists.test)
+    add_rostest(test/rostest/test_server/test_remapping.test)
     add_rostest(test/rostest/test_server/test_ros_services.test)
     add_rostest(test/rostest/test_server/test_white_black_lists.test)
     add_rostest(test/rostest/test_service_discovery/test_spec_index_from_service.test)

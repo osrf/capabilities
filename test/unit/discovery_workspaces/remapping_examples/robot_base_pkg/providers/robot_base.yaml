@@ -1,0 +1,7 @@
+%YAML 1.1
+---
+name: robot_base
+spec_version: 1
+spec_type: provider
+implements: robot_base_pkg/RobotBase
+launch_file: 'launch/robot_base.launch'

@@ -1,0 +1,9 @@
+%YAML 1.1
+---
+name: FrontDistance
+spec_version: 1
+spec_type: semantic_interface
+redefines: 'robot_base_pkg/Distance'
+remappings:
+    topics:
+        'distance': 'front/distance'

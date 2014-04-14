@@ -1,0 +1,6 @@
+string spec
+---
+Remapping[] topics
+Remapping[] services
+Remapping[] actions
+Remapping[] parameters

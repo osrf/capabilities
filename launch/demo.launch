@@ -27,5 +27,6 @@
         </rosparam> -->
         <!-- Uncomment below to explicitly set the default provider for minimal_pkg/Minimal -->
         <!-- <param name="defaults/minimal_pkg/Minimal" value="minimal_pkg/minimal" /> -->
+        <param name="defaults/robot_base_pkg/Distance" value="robot_base_pkg/distance_front" />
     </node>
 </launch>

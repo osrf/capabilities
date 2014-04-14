@@ -52,11 +52,15 @@ class Test(unittest.TestCase):
         call_service('/capability_server/start_capability',
                      'navigation_capability/Navigation',
                      'navigation_capability/faux_navigation')
-        rospy.sleep(6)  # Wait for the system to settle
-        resp = call_service('/capability_server/get_running_capabilities')
-        result = [x.capability.capability for x in resp.running_capabilities]
+        result = []
         expected = ['navigation_capability/Navigation',
                     'differential_mobile_base_capability/DifferentialMobileBase']
+        count = 0
+        while count != 10 and sorted(result) != sorted(expected):
+            rospy.sleep(1)
+            count += 1
+            resp = call_service('/capability_server/get_running_capabilities')
+            result = [x.capability.capability for x in resp.running_capabilities]
         self.assertEqual(sorted(result), sorted(expected))
         call_service('/capability_server/stop_capability',
                      'differential_mobile_base_capability/DifferentialMobileBase')

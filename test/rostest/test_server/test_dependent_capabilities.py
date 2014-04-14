@@ -11,12 +11,14 @@ import rospy
 from test_ros_services import assert_raises
 from test_ros_services import call_service
 from test_ros_services import ServiceException
+from test_ros_services import wait_for_capability_server
 
 TEST_NAME = 'test_dependent_capabilities'
 
 
 class Test(unittest.TestCase):
     def test_start_stop_dependent_capabilities(self):
+        wait_for_capability_server(3)
         call_service('/capability_server/start_capability',
                      'navigation_capability/Navigation',
                      'navigation_capability/faux_navigation')
@@ -49,6 +51,7 @@ class Test(unittest.TestCase):
         """
         Stopping a base capability should stop all dependent capabilities too.
         """
+        wait_for_capability_server(3)
         call_service('/capability_server/start_capability',
                      'navigation_capability/Navigation',
                      'navigation_capability/faux_navigation')

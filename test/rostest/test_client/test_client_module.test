@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="capabilities" name="capability_server" type="capability_server" output="screen" required="true">
+    <env name="ROS_PACKAGE_PATH"
+         value="$(find capabilities)/test/unit/discovery_workspaces/minimal:$(env ROS_PACKAGE_PATH)" />
+  </node>
+  <test test-name="client_module" pkg="capabilities" type="test_client_module.py" launch-prefix="coverage run --source=$(find capabilities)/src/capabilities --append "/>
+</launch>

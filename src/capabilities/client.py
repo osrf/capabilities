@@ -156,13 +156,13 @@ class CapabilitiesClient(object):
         if self.__wait_for_service(self.__establish_bond, timeout) is False:
             return None
         resp = self.__establish_bond()
-        if not resp.bond_id:
+        if not resp.bond_id:  # pragma: no cover
             return None
         self._bond_id = resp.bond_id
         self._bond = Bond('{0}/bonds'.format(self._name), self._bond_id)
         self._bond.start()
         timeout_dur = None if timeout is None else rospy.Duration.from_sec(timeout)
-        if self._bond.wait_until_formed(timeout_dur) is False:
+        if self._bond.wait_until_formed(timeout_dur) is False:  # pragma: no cover
             return None
         return self._bond_id
 
@@ -213,9 +213,9 @@ class CapabilitiesClient(object):
         """
         # If no bond has been established, establish one first
         if self._bond is None:
-            if self.establish_bond(timeout) is None:
+            if self.establish_bond(timeout) is None:  # pragma: no cover
                 return False
-        if self.__wait_for_service(self.__use_capability, timeout) is False:
+        if self.__wait_for_service(self.__use_capability, timeout) is False:  # pragma: no cover
             return False
         self.__use_capability.call(capability_interface, preferred_provider or '', self._bond_id)
         self._used_capabilities.add(capability_interface)

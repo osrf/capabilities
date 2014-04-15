@@ -73,18 +73,20 @@ On other platforms you can use ``pip``:
 
     $ sudo pip install nose coverage
 
-After ``source``'ing the ``setup.bash`` file generated from building you can run nosetests from the source directory:
+You will also need the build and run dependencies for capabilities because it must be built during the testing.
+You can get the dependencies you need using ``rosdep``:
 
 .. code-block:: bash
 
-    $ nosetests --with-coverage --cover-package capabilities -s
+    $ rosdep install --from-paths ./ --ignore-src --rosdistro hydro -y
 
-This is will report coverage of the non-ROS modules. You can run the rest of the tests by invoking the ``run_tests`` Make target in the build folder:
+Remember to update the value given to ``--rosdistro`` to the ROS distro you are using and to change the ``./`` given to ``--from-paths`` if you are not in the local checkout of the ``capabilities`` source code.
+
+Finally you can run the tests with a coverage report by invoking the ``coverage`` target of the provided ``Makefile`` in the root of the capabilities source repository:
 
 .. code-block:: bash
 
-    $ cd build
-    $ make && make run_tests
+    $ make coverage
 
 Running a demo
 --------------

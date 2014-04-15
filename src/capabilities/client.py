@@ -149,18 +149,20 @@ class CapabilitiesClient(object):
         to become available or while waiting for the bond to form.
 
         :param timeout: time in seconds to wait for the service to be available
+        :type timeout: float
         :returns: the bond_id received from the server or None on failure
         :rtype: str
         """
         if self.__wait_for_service(self.__establish_bond, timeout) is False:
             return None
         resp = self.__establish_bond()
-        if not resp.bond_id:
+        if not resp.bond_id:  # pragma: no cover
             return None
         self._bond_id = resp.bond_id
         self._bond = Bond('{0}/bonds'.format(self._name), self._bond_id)
         self._bond.start()
-        if self._bond.wait_until_formed(rospy.Duration(timeout)) is False:
+        timeout_dur = None if timeout is None else rospy.Duration.from_sec(timeout)
+        if self._bond.wait_until_formed(timeout_dur) is False:  # pragma: no cover
             return None
         return self._bond_id
 
@@ -173,7 +175,7 @@ class CapabilitiesClient(object):
         :param capability_interface: Name of the capability interface to free up
         :type capability_interface: str
         :param timeout: time to wait on service to be available (optional)
-        :type timeout: rospy.Duration
+        :type timeout: float
         :returns: True if successful, otherwise False
         :rtype: bool
         """
@@ -205,15 +207,15 @@ class CapabilitiesClient(object):
         :param preferred_provider: preferred provider or None for default provider (optional)
         :type preferred_provider: str
         :param timeout: time to wait on service to be available (optional)
-        :type timeout: rospy.Duration
+        :type timeout: float
         :returns: True if successful, otherwise False
         :rtype: bool
         """
         # If no bond has been established, establish one first
         if self._bond is None:
-            if self.establish_bond(timeout) is None:
+            if self.establish_bond(timeout) is None:  # pragma: no cover
                 return False
-        if self.__wait_for_service(self.__use_capability, timeout) is False:
+        if self.__wait_for_service(self.__use_capability, timeout) is False:  # pragma: no cover
             return False
         self.__use_capability.call(capability_interface, preferred_provider or '', self._bond_id)
         self._used_capabilities.add(capability_interface)

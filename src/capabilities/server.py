@@ -801,7 +801,8 @@ class CapabilityServer(object):
         if bond_id not in capability.bonds:
             raise RuntimeError("Given bond_id '{0}' not associated with given capability '{1}'"
                                .format(bond_id, capability_name))
-        if capability.bonds[bond_id] == 0:
+        if capability.bonds[bond_id] == 0:  # pragma: no cover
+            # this is defensive, it should never happen
             raise RuntimeError("Cannot free capability '{0}' for bond_id '{1}', it already has a reference count of 0"
                                .format(capability_name, bond_id))
         capability.bonds[bond_id] -= 1
@@ -832,10 +833,8 @@ class CapabilityServer(object):
             raise RuntimeError("Invalid bond_id given to ~use_capability: '{0}'".format(req.bond_id))
         # Start the capability if it is not already running
         if req.capability not in self.__capability_instances:
-            ret = self.__start_capability(req.capability, req.preferred_provider)
-            if not ret:
-                raise RuntimeError("Failed to start capability '{0}' with preferred provider '{1}'"
-                                   .format(req.capability, req.preferred_provider))
+            # This will raise if it failes to start the capability
+            self.__start_capability(req.capability, req.preferred_provider)
         assert req.capability in self.__capability_instances  # Should be true
         # Get a handle ont he capability
         capability = self.__capability_instances[req.capability]

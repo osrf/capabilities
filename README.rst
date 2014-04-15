@@ -12,9 +12,9 @@ Continuous Integration:
 
 Please see the documentation located here:
 
-http://ros.org/wiki/capabilities
+http://wiki.ros.org/capabilities
 
-http://ros.org/wiki/capabilities/Tutorials
+http://wiki.ros.org/capabilities/Tutorials
 
 http://ros.org/doc/hydro/api/capabilities/html/
 

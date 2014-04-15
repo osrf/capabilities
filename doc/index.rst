@@ -89,4 +89,4 @@ This is will report coverage of the non-ROS modules. You can run the rest of the
 Running a demo
 --------------
 
-See: http://ros.org/wiki/capabilities/Tutorials
+See: http://wiki.ros.org/capabilities/Tutorials

@@ -33,7 +33,17 @@
 
 # Author: William Woodall <william@osrfoundation.org>
 
-"""This module provides a way to create a spec_index remotely via a ROS service call
+"""This module provides a way to create a spec_index remotely via a ROS service call.
+
+Typical usage::
+
+    >>> from capabilities.service_discovery import spec_index_from_service
+    >>> si, errors = spec_index_from_service(capability_server_node_name='/capability_server', timeout=3.0)
+    >>> assert not errors, errors
+
+This results in a :py:class:`capabilities.discovery.SpecIndex` class,
+created using the capability specs (interfaces, semantic interfaces,
+and providers) availble to the remote ``capability_server``.
 """
 
 import rospy
@@ -49,21 +59,23 @@ from capabilities.specs.semantic_interface import semantic_capability_interface_
 from capabilities.discovery import _spec_loader
 
 
-def spec_index_from_service(server_node_name='capability_server', timeout=None):
-    """Builds a :py:class:`SpecIndex` by calling a ROS service to get the specs
+def spec_index_from_service(capability_server_node_name='capability_server', timeout=None):
+    """Builds a :py:class:`capabilities.discovery.SpecIndex` by calling a ROS service to get the specs
 
-    Works just like :py:func:`spec_index_from_spec_file_index`, except the raw
+    Works just like :py:func:`capabilities.discovery.spec_index_from_spec_file_index`, except the raw
     spec files are retreived over a service call rather than from disk.
 
-    :param server_node_name: Name of the capability server's node,
+    :param capability_server_node_name: Name of the capability server's node,
         default is 'capability_server'
-    :type server_node_name: str
+    :type capability_server_node_name: str
     :param timeout: timeout for waiting on service to be available
     :type timeout: float
-
+    :returns: A :py:obj:`tuple` of :py:class:`capabilities.discovery.SpecIndex`
+        and a :py:obj:`list` of errors encountered, based on contents of ``~get_capability_specs``
+    :rtype: :py:class:`capabilities.discovery.SpecIndex`, :py:obj:`list` (:py:obj:`Exception`'s)
     :raises: :py:class:`rospy.ServiceException` when the service call fails
     """
-    service_name = '/{0}/get_capability_specs'.format(server_node_name)
+    service_name = '/{0}/get_capability_specs'.format(capability_server_node_name)
     rospy.wait_for_service(service_name, timeout)
     get_capability_specs = rospy.ServiceProxy(service_name, GetCapabilitySpecs)
     response = get_capability_specs()

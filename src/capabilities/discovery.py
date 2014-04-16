@@ -37,8 +37,8 @@
 """
 This module implements discovery of packages which export various spec files.
 
-You can use this API as follows, assuming workspace of
-'test/discovery_workspaces/minimal'::
+You can use this API as follows, (examples assume use of the
+'test/discovery_workspaces/minimal' workspace::
 
     >>> from pprint import pprint
     >>> from capabilities.discovery import package_index_from_package_path
@@ -103,6 +103,13 @@ from capabilities.specs.semantic_interface import InvalidSemanticInterface
 
 
 class DuplicateNameException(Exception):
+    """Raised when multiple specs with the same name are discovered
+
+    :ivar str spec_name: name of the spec's which collided
+    :ivar str package: package in which the colliding spec is defined
+    :ivar str spec_type: type of the colliding spec one of:
+        capability_interface, semantic_capability_interface, capability_provider
+    """
     def __init__(self, name, colliding_package, spec_type):
         self.spec_name = name
         self.package = colliding_package
@@ -113,6 +120,17 @@ class DuplicateNameException(Exception):
 
 
 class InterfaceNameNotFoundException(Exception):
+    """Raised when a referenced interface spec is not found
+
+    This can happen, for example, when a provider depends on an interface
+    which is not defined anywhere.
+
+    :ivar str spec_name: name of the spec's which referenced the non existent
+        interface
+    :ivar str package: package in which offending spec resides
+    :ivar str spec_type: type of the offending spec one of:
+        capability_interface, semantic_capability_interface, capability_provider
+    """
     def __init__(self, msg, spec_name, spec_type, spec_package):
         self.spec_name = spec_name
         self.package = spec_package
@@ -121,7 +139,7 @@ class InterfaceNameNotFoundException(Exception):
 
 
 def package_index_from_package_path(package_paths):
-    """Find all packages on the given list of paths
+    """Finds all packages on the given list of paths.
 
     Iterates over the given list of paths in reverse order so that packages
     found in the paths at the beginning of the list get overlaid onto packages
@@ -131,10 +149,9 @@ def package_index_from_package_path(package_paths):
     duplicate names are overlaid) and the values are the
     :py:class:`catkin_pkg.package.Package` class
 
-    :param ros_package_path: list of paths to search
-    :type ros_package_path: list
+    :param list ros_package_path: list of paths to search
     :returns: dictionary of package objects keyed by name of the package
-    :rtype: dict
+    :rtype: :py:obj:`dict`
     """
     result = {}
     for path in reversed(package_paths):
@@ -148,14 +165,16 @@ def spec_file_index_from_package_index(package_index):
 
     Takes a dict of package objects keyed by package name.
 
-    Returns a dict structured like this::
+    Returns a dict structured like this:
+
+    .. code-block:: python
 
         {
             '<package_name>': {
                 'package': package_obj,
-                'capability_interface': [path to spec file, ...],
-                'capability_provider': [path to spec file, ...],
-                'semantic_capability_interface': [path to spec file, ...]
+                'capability_interface': ['path to spec file', ...],
+                'capability_provider': ['path to spec file', ...],
+                'semantic_capability_interface': ['path to spec file', ...]
             },
             ...
         }
@@ -168,7 +187,7 @@ def spec_file_index_from_package_index(package_index):
         keyed by package name to be processed
     :type package_index: dict
     :returns: spec file index strucutre
-    :rtype: dict
+    :rtype: :py:obj:`dict`
     """
     spec_file_index = {}
     for package_name, package in package_index.items():
@@ -234,7 +253,7 @@ def _spec_loader(spec_thing_index, spec_thing_loaders):
 def spec_index_from_spec_file_index(spec_file_index):
     """Builds a :py:class:`SpecIndex` from a spec file index
 
-    Goes through each spec path in each package of the given spec file index
+    Goes through each spec paths foreach package of the given spec file index
     and parses them into objects. The objects are stored in a
     :py:class:`SpecIndex` before being returned.
 
@@ -244,14 +263,21 @@ def spec_index_from_spec_file_index(spec_file_index):
 
     Any other errors encountered during spec file processing will be returned
     as a list along with the :py:class:`SpecIndex`.
+    Caught errors include:
+
+    - :py:exc:`capabilities.discovery.InterfaceNameNotFoundException`
+    - :py:exc:`capabilities.discovery.DuplicateNameException`
+    - :py:exc:`capabilities.specs.interface.InvalidInterface`
+    - :py:exc:`capabilities.specs.semantic_interface.InvalidSemanticInterface`
+    - :py:exc:`capabilities.specs.provider.InvalidProvide`
 
     :param spec_file_index: spec_file_index, see
-        :py:func:`spec_file_index_from_packages_dict`
+        :py:func:`spec_file_index_from_package_index`
     :type spec_file_index: dict
-    :returns: SpecIndex which contains all the loaded specs
-        and a list of any errors encountered while loading the spec files
-    :rtype: :py:class:`SpecIndex`, :py:obj:`list`
-    :raises DuplicateNameException: when two interfaces have the same name
+    :returns: :py:class:`SpecIndex` (which contains all the loaded specs)
+        and a :py:obj:`list` of any errors encountered while loading the spec files
+    :rtype: :py:class:`SpecIndex`, :py:obj:`list` (:py:obj:`Exception`'s)
+    :raises: :py:exc:`DuplicateNameException` when two interfaces have the same name
     """
     def capability_interface_loader(path, package_name, spec_index):
         interface = capability_interface_from_file_path(path)
@@ -289,13 +315,13 @@ class SpecIndex(object):
     def add_interface(self, interface, file_path, package_name):
         """Add a loaded CapabilityInterface object into the repository
 
+        Used by :py:func:`spec_index_from_spec_file_index` to build the :py:class:`SpecIndex`.
+
         :param interface: CapabilityInterface object which was loaded using a
             factory function
         :type interface: :py:class:`.specs.interface.CapabilityInterface`
-        :param file_path: path to the interface spec file that was loaded
-        :type file_path: str
-        :param package_name: name of the package which contains the interface
-        :type package_name: str
+        :param str file_path: path to the interface spec file that was loaded
+        :param str package_name: name of the package which contains the interface
         :raises: :py:exc:`DuplicateNameException` if there is a name collision
         """
         interface_name = '{package}/{name}'.format(package=package_name, name=interface.name)
@@ -313,8 +339,7 @@ class SpecIndex(object):
     def remove_interface(self, interface_name):
         """Removes a capability interface by name
 
-        :param interface_name: name of the interface to remove
-        :type interface_name: str
+        :param str interface_name: name of the interface to remove
         :raises: :py:exc:`KeyError` if there is no interface by that name
         """
         del self.__interfaces[interface_name]
@@ -322,16 +347,16 @@ class SpecIndex(object):
     def add_semantic_interface(self, semantic_interface, file_path, package_name):
         """Add a loaded SemanticCapabilityInterface object into the repository
 
+        Used by :py:func:`spec_index_from_spec_file_index` to build the :py:class:`SpecIndex`.
+
         :param semantic_interface: SemanticCapabilityInterface object which was
             loaded using a factory function
         :type semantic_interface:
             :py:class:`.specs.semantic_interface.SemanticCapabilityInterface`
-        :param file_path: path to the semantic interface spec file that
+        :param str file_path: path to the semantic interface spec file that
             was loaded
-        :type file_path: str
-        :param package_name: name of the package which contains the
+        :param str package_name: name of the package which contains the
             semantic interface
-        :type package_name: str
         :raises: :py:exc:`DuplicateNameException` if there is a name collision
         :raises: :py:exc:`InterfaceNameNotFoundException` if the interface which
             this semantic capability interface redefines is not found.
@@ -357,8 +382,7 @@ class SpecIndex(object):
     def remove_semantic_interface(self, semantic_interface_name):
         """Removes a semantic capability interface by name
 
-        :param semantic_interface_name: name of the interface to remove
-        :type semantic_interface_name: str
+        :param str semantic_interface_name: name of the interface to remove
         :raises: :py:exc:`KeyError` if there is no interface by that name
         """
         del self.__semantic_interfaces[semantic_interface_name]
@@ -366,13 +390,13 @@ class SpecIndex(object):
     def add_provider(self, provider, file_path, package_name):
         """Add a loaded CapabilityProvider object into the repository
 
+        Used by :py:func:`spec_index_from_spec_file_index` to build the :py:class:`SpecIndex`.
+
         :param provider: CapabilityProvider object which was loaded using a
             factory function
         :type provider: :py:class:`.specs.provider.CapabilityProvider`
-        :param file_path: path to the provider spec file that was loaded
-        :type file_path: str
-        :param package_name: name of the package which contains the provider
-        :type package_name: str
+        :param str file_path: path to the provider spec file that was loaded
+        :param str package_name: name of the package which contains the provider
         :raises: :py:exc:`DuplicateNameException` if there is a name collision
         :raises: :py:exc:`InterfaceNameNotFoundException` if the interface which
             this capability provider implements is not found.
@@ -399,20 +423,31 @@ class SpecIndex(object):
     def remove_provider(self, provider_name):
         """Removes a capability provider by name
 
-        :param provider_name: name of the interface to remove
-        :type provider_name: str
+        :param str provider_name: name of the interface to remove
         :raises: :py:exc:`KeyError` if there is no interface by that name
         """
         del self.__providers[provider_name]
 
     @property
     def names(self):
-        """list of all names"""
+        """
+        :returns: list of the names for all specs of all types
+        :rtype: :py:obj:`list` (:py:obj:`str`)
+        """
         return self.interfaces.keys() + self.semantic_interfaces.keys() + self.providers.keys()
 
     @property
     def specs(self):
-        """dict of specs, keyed by name"""
+        """
+        Possible spec types:
+
+        - :py:class:`.specs.interface.CapabilityInterface`
+        - :py:class:`.specs.semantic_interface.SemanticCapabilityInterface`
+        - :py:class:`.specs.provider.CapabilityProvider`
+
+        :returns: dict of specs, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: spec}
+        """
         result = {}
         # There should be no key collisions as collisions are found on insertion
         result.update(self.interfaces)
@@ -422,45 +457,72 @@ class SpecIndex(object):
 
     @property
     def interface_names(self):
-        """list of capability interface names"""
+        """
+        :returns: list of capability interface names
+        :rtype: :py:obj:`list` (:py:obj:`str`)
+        """
         return [n for n in self.__interfaces.keys()]
 
     @property
     def interfaces(self):
-        """dict of capability interfaces, keyed by name"""
+        """
+        :returns: dict of capability interfaces, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: :py:class:`.specs.interface.CapabilityInterface`}
+        """
         return dict([(n, x['instance']) for n, x in self.__interfaces.items()])
 
     @property
     def interface_paths(self):
-        """dict of capability interface spec paths, keyed by name"""
+        """
+        :returns: dict of capability interface spec paths, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: :py:obj:`str`}
+        """
         return dict([(n, x['path']) for n, x in self.__interfaces.items()])
 
     @property
     def provider_names(self):
-        """list of capability provider names"""
+        """
+        :returns: list of capability provider names
+        :rtype: :py:obj:`list` (:py:obj:`str`)
+        """
         return [n for n in self.__providers.keys()]
 
     @property
     def providers(self):
-        """dict of capability providers, keyed by name"""
+        """
+        :returns: dict of capability providers, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: :py:class:`.specs.provider.CapabilityProvider`}
+        """
         return dict([(n, x['instance']) for n, x in self.__providers.items()])
 
     @property
     def provider_paths(self):
-        """dict of capability provider spec paths, keyed by name"""
+        """
+        :returns: dict of capability provider spec paths, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: :py:obj:`str`}
+        """
         return dict([(n, x['path']) for n, x in self.__providers.items()])
 
     @property
     def semantic_interface_names(self):
-        """list of semantic capability interface names"""
+        """
+        :returns: list of semantic capability interface names
+        :rtype: :py:obj:`list` (:py:obj:`str`)
+        """
         return [n for n in self.__semantic_interfaces.keys()]
 
     @property
     def semantic_interfaces(self):
-        """dict of semantic capability interfaces, keyed by name"""
+        """
+        :returns: dict of semantic capability interfaces, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: :py:class:`.specs.semantic_interface.SemanticCapabilityInterface`}
+        """
         return dict([(n, x['instance']) for n, x in self.__semantic_interfaces.items()])
 
     @property
     def semantic_interface_paths(self):
-        """dict of semantic capability interface spec paths, keyed by name"""
+        """
+        :returns: dict of semantic capability interface spec paths, keyed by name
+        :rtype: :py:obj:`dict` {:py:obj:`str`: :py:obj:`str`}
+        """
         return dict([(n, x['path']) for n, x in self.__semantic_interfaces.items()])

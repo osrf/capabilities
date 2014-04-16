@@ -33,14 +33,17 @@
 
 # Author: William Woodall <william@osrfoundation.org>
 
-"""Provides a simple Python interface for interacting with the capability server
+"""Provides a simple Python interface for interacting with the capability server.
 
 Typical usage::
 
     >>> from capabilities.client import Client
     >>> client = Client()
-    # Use the line below if the capability_server has a different name
-    # client = Client(capability_server_node_name='/capability_server_node_name')
+    >>> # Use the line below if the capability_server has a different name
+    >>> # client = Client(capability_server_node_name='/capability_server_node_name')
+    >>> if not client.wait_for_services(3.0):  # Wait upto 3.0 seconds for the required ROS services
+    ...     import sys
+    ...     sys.exit("capability_server, called '{0}', failed to come up.".format(client._name))
     >>> client.use_capability('foo_pkg/Foo')
     >>> client.use_capability('foo_pkg/Foo')
     >>> client.free_capability('foo_pkg/Foo')
@@ -63,7 +66,7 @@ class CapabilitiesClient(object):
     """Single point of entry for interacting with a remote capability server.
 
     Instantiation of this class does not check to see if the underlying
-    services are available, call :py:method:`wait_for_services` if you want
+    services are available, call :py:meth:`wait_for_services` if you want
     to ensure that the services are available before continuing.
 
     :param capability_server_node_name: name of the remote capability server
@@ -105,8 +108,8 @@ class CapabilitiesClient(object):
         :param services: List of services to wait on.
             If None is passed, then this will check all the services.
         :type services: list
-        :returns: True is the services are available, False otherwise (timeout)
-        :rtype: bool
+        :returns: :py:obj:`True` is the services are available, :py:obj:`False` otherwise (timeout)
+        :rtype: :py:obj:`bool`
         """
         services = self._services.keys() if services is None else services
         assert isinstance(services, list), services
@@ -129,16 +132,16 @@ class CapabilitiesClient(object):
         return True
 
     def establish_bond(self, timeout=None):
-        """Establishes a bond using the ~establish_bond service call
+        """Establishes a bond using the ``~establish_bond`` service call
 
         The bond id which is returned by the service call is stored internally
         and used implicitly by the use/free capabilities functions.
 
-        If establish_bond had previously been called, then the old bond will be
+        If :py:meth:`establish_bond` had previously been called, then the old bond will be
         broken, which will result in any capability uses under that bond to be
         implicitly freed.
 
-        This function is called implicitly by :py:method:`use_capability` if
+        This function is called implicitly by :py:meth:`use_capability` if
         no bond exists.
 
         This function will block waiting for the service call to become
@@ -150,8 +153,8 @@ class CapabilitiesClient(object):
 
         :param timeout: time in seconds to wait for the service to be available
         :type timeout: float
-        :returns: the bond_id received from the server or None on failure
-        :rtype: str
+        :returns: the bond_id received from the server or :py:obj:`None` on failure
+        :rtype: :py:obj:`str`
         """
         if self.__wait_for_service(self.__establish_bond, timeout) is False:
             return None
@@ -169,15 +172,19 @@ class CapabilitiesClient(object):
     def free_capability(self, capability_interface, timeout=None):
         """Free's a previously used capability.
 
-        Calls the ~free_capability service, and closes the bond with that
-        topic if the reference count is zero.
+        Calls the ``~free_capability`` service, which effectively decrements
+        the internal reference count for that capability in the remote
+        capability server.
+
+        If that results in a reference count of zero,
+        then the capability server will shutdown that capability automatically.
 
         :param capability_interface: Name of the capability interface to free up
         :type capability_interface: str
         :param timeout: time to wait on service to be available (optional)
         :type timeout: float
-        :returns: True if successful, otherwise False
-        :rtype: bool
+        :returns: :py:obj:`True` if successful, otherwise :py:obj:`False`
+        :rtype: :py:obj:`bool`
         """
         if capability_interface not in self._used_capabilities:
             rospy.logerr("Cannot free capability interface '{0}', because it was not first used."
@@ -196,11 +203,12 @@ class CapabilitiesClient(object):
     def use_capability(self, capability_interface, preferred_provider=None, timeout=None):
         """Declares that this capability is being used.
 
-        Calls the `~use_capability` service, and opens a bond with that topic.
-        This way the capability is started if it has not been already, and the
-        internal reference count for the capability server is incremented.
-        If the bond fails (this program crashes) then the reference is decremented.
-        The reference is also decremented if free_capability is called.
+        Calls the ``~use_capability`` service, and opens a bond with capability server if none exists.
+        This will cause the capability to be started, if it has not been already, and the
+        internal reference count for that capability in the capability server is incremented.
+
+        If the bond fails (i.e. this program crashes) then the reference is decremented automatically.
+        The reference is also decremented if :py:meth:`free_capability` is called.
 
         :param capability_interface: Name of the capability interface to use
         :type capability_interface: str
@@ -208,8 +216,8 @@ class CapabilitiesClient(object):
         :type preferred_provider: str
         :param timeout: time to wait on service to be available (optional)
         :type timeout: float
-        :returns: True if successful, otherwise False
-        :rtype: bool
+        :returns: :py:obj:`True` if successful, otherwise :py:obj:`False`
+        :rtype: :py:obj:`bool`
         """
         # If no bond has been established, establish one first
         if self._bond is None:

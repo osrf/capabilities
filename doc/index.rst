@@ -1,18 +1,44 @@
 Capabilities
 ============
 
+.. toctree::
+    :hidden:
+
+    capability_server
+    capabilities.client
+    capabilities.discovery
+    capabilities.service_discovery
+    capabilities.specs
+    capabilities.server
+    capabilities.launch_manager
+
 Implements the concept of capabilities as part of the robots-in-concert system.
 
 API Documentation
 -----------------
 
-.. toctree::
+For end users it is recommended to use the ``capability_server`` script in combination with the :py:class:`capabilities.client.CapabilitiesClient` Class of the :doc:`capabilities.client <capabilities.client>` module and the :doc:`capabilities.service_discovery <capabilities.service_discovery>` module.
 
-    capabilities.discovery: API for discovering and loading capability related spec files from the ROS_PACKAGE_PATH <capabilities.discovery>
-    capabilities.launch_manager: provides a system for launching and managing running capability providers <capabilities.launch_manager>
-    capabilities.server: Implements the capability_server command line program <capabilities.server>
-    capabilities.service_discovery: Provides a method to do discovery via a ROS service call to a running capability_server <capabilities.service_discovery>
-    capabilities.specs: API for loading, parsing, and interacting with various spec definitions <capabilities.specs>
+The ``capability_server``, along with its ROS API, is documented here: :doc:`capability_server`
+
+The :py:class:`capabilities.client.CapabilitiesClient` class provides a simple Python class for interacting with a remote ``capability_server``, allowing you to "use" and "free" capabilities using the reference counting services provided by the server.
+The client API ensures the "uses" of capabilities do not leak by maintaining a bond with each client, and it manages underlying bond creation and maintenance under the hood so that the client never sees that.
+Since there is a bond with each client, if that bond breaks for any reason, then the corresponding "used" capabilities will be freed and may shutdown.
+Therefore, if you want to make sure the capabilities keep running, you need to keep the :py:class:`capabilities.client.CapabilitiesClient` Class around for the lifetime of your application.
+
+The :doc:`capabilities.service_discovery <capabilities.service_discovery>` module provides a mechanism to remotely get an instance of the powerful :py:class:`capabilities.discovery.SpecIndex` Class which allows you to introspect the available capability specs (interfaces, semantic interfaces, and providers) to which the server has access.
+
+These are considered to be the public API for the ``capabilities`` Python package:
+
+- :doc:`capabilities.client`: interact remotely with a capability_server
+- :doc:`capabilities.discovery`: discover and load capability spec files from the ROS_PACKAGE_PATH
+- :doc:`capabilities.service_discovery`: get a SpecIndex from a remote capability_server
+- :doc:`capabilities.specs`: package for interacting with different types of capability specs
+
+The rest of the documented API is used internally and not considered public, so use it at your on risk:
+
+- :doc:`capabilities.server`: implementation of the capability_server ROS Node
+- :doc:`capabilities.launch_manager`: implements a manager for the running roslaunch instances
 
 Building
 --------

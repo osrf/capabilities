@@ -16,7 +16,7 @@ http://wiki.ros.org/capabilities
 
 http://wiki.ros.org/capabilities/Tutorials
 
-http://ros.org/doc/hydro/api/capabilities/html/
+http://docs.ros.org/hydro/api/capabilities/html/
 
 http://www.robotconcert.org/wiki/Appable_Robot
 

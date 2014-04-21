@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-from pkg_resources import load_entry_point
+
+try:
+    from coverage import main
+except ImportError as exc:
+    print("Error: failed to run coverage: {0}".format(exc))
 
 if __name__ == '__main__':
-    sys.exit(load_entry_point('coverage', 'console_scripts', 'coverage')())
+    sys.exit(main())

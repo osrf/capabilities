@@ -8,6 +8,8 @@ include = *src/capabilities*
 endef
 export COVERAGERC
 
+COVERAGE_BIN=${SRC_DIR}/test/run_coverage
+
 coverage:
 	@echo "Using SRC_DIR: ${SRC_DIR}"
 	@echo "Using BUILD_DIR: ${BUILD_DIR}"
@@ -28,5 +30,5 @@ coverage:
 	cd ${BUILD_DIR} && ${BUILD_DIR}/devel/env.sh nosetests --where=${SRC_DIR}/test/unit --with-coverage -s
 	ls ${BUILD_DIR}/.coverage
 	cp ${BUILD_DIR}/.coverage ./.coverage.2
-	coverage combine
-	coverage report --include='*capabilities/src*' -m
+	${COVERAGE_BIN} combine
+	${COVERAGE_BIN} report --include='*capabilities/src*' -m

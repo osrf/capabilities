@@ -1,6 +1,6 @@
 <launch>
   <node pkg="capabilities" name="capability_server" type="capability_server" output="screen" required="true"
-        launch-prefix="coverage run --append ">
+        launch-prefix="$(find capabilities)/test/run_coverage run --append ">
     <param name="debug" value="true"/>
     <env name="ROS_PACKAGE_PATH"
          value="$(find capabilities)/test/unit/discovery_workspaces/minimal:$(find capabilities)/test/rostest/test_server/no_provider:$(env ROS_PACKAGE_PATH)" />

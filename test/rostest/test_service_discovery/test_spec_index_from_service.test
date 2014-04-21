@@ -3,5 +3,5 @@
     <env name="ROS_PACKAGE_PATH"
          value="$(find capabilities)/test/unit/discovery_workspaces/minimal:$(env ROS_PACKAGE_PATH)" />
   </node>
-  <test test-name="spec_index_from_service" pkg="capabilities" type="test_spec_index_from_service.py" launch-prefix="coverage run --source=$(find capabilities)/src/capabilities --append "/>
+  <test test-name="spec_index_from_service" pkg="capabilities" type="test_spec_index_from_service.py" launch-prefix="$(find capabilities)/test/run_coverage run --source=$(find capabilities)/src/capabilities --append "/>
 </launch>

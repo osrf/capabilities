@@ -16,7 +16,7 @@ TEST_NAME = 'test_default_provider'
 
 class Test(unittest.TestCase):
     def test_default_provider(self):
-        wait_for_capability_server(None)
+        assert wait_for_capability_server(10)
         call_service('/capability_server/start_capability', 'no_default_provider_pkg/Minimal', '')
         rospy.sleep(1)  # Wait for the system to settle
         resp = call_service('/capability_server/get_running_capabilities')

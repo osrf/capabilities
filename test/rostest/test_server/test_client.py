@@ -31,7 +31,7 @@ def wait_for_result_to_happen(expected, initial_result, tries=10, sleep_period=1
 
 class Test(unittest.TestCase):
     def test_use_and_free_capability(self):
-        wait_for_capability_server(3)
+        assert wait_for_capability_server(10)
         c = CapabilitiesClient()
         c.wait_for_services(timeout=3.0)
         # Give invalid bond id to use_capability

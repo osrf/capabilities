@@ -2,8 +2,8 @@
 Changelog for package capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2014-05-02)
+------------------
 * Add entry in setup.py to install package data
 * Fixed up testing
 * Updates link to API doc

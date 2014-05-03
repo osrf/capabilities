@@ -2,6 +2,13 @@
 Changelog for package capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add entry in setup.py to install package data
+* Fixed up testing
+* Updates link to API doc
+* Contributors: Marcus Liebhardt, William Woodall
+
 0.1.0 (2014-04-15)
 ------------------
 * First release

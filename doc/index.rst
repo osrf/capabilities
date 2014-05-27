@@ -43,7 +43,7 @@ The rest of the documented API is used internally and not considered public, so 
 Building
 --------
 
-Build it in a catkin workspace or build it stand alone:
+Build it in a catkin workspace or build it stand alone (replace hydro with your ros version if necessary):
 
 .. code-block:: bash
 

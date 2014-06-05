@@ -800,7 +800,9 @@ class CapabilityServer(object):
 
     def __free_capability(self, capability_name, bond_id):
         if capability_name not in self.__capability_instances:
-            raise RuntimeError("No Capability '{0}' in use".format(capability_name))
+            # If you update this exception's message, then update the corresponding code
+            # in capabilities.client.CapabilitiesClient.free_capability()
+            raise RuntimeError("Cannot free Capability '{0}', because it is not running".format(capability_name))
         capability = self.__capability_instances[capability_name]
         if bond_id not in capability.bonds:
             raise RuntimeError("Given bond_id '{0}' not associated with given capability '{1}'"

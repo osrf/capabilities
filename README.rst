@@ -18,12 +18,12 @@ http://wiki.ros.org/capabilities/Tutorials
 
 http://docs.ros.org/hydro/api/capabilities/html/
 
-http://www.robotconcert.org/wiki/Appable_Robot
+http://www.robotconcert.org/index.php/Appable_Robot
 
-.. image:: http://www.robotconcert.org/roconwiki/images/c/c3/A4_nomal_png_a_small.png
+.. image:: http://www.robotconcert.org/images/c/c3/A4_nomal_png_a_small.png
    :align: right
    :alt: Robotics in Concert
    
-.. _`appable robot`: http://www.robotconcert.org/wiki/Appable_Robot
+.. _`appable robot`: http://www.robotconcert.org/index.php/Appable_Robot
 
 .. _`Robotics-in-Concert (ROCON)`: http://www.robotconcert.org 

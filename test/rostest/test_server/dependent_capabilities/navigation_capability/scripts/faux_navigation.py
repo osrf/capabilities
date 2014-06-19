@@ -8,7 +8,7 @@ from geometry_msgs.msg import Twist
 
 def main():
     rospy.init_node('faux_navigation')
-    pub = rospy.Publisher('cmd_vel', Twist)
+    pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
     angles = []
     while not rospy.is_shutdown():
         if not angles:

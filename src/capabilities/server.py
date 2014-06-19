@@ -379,7 +379,7 @@ class CapabilityServer(object):
             '~events', CapabilityEvent, self.handle_capability_events)
 
         rospy.loginfo("Capability Server Ready")
-        rospy.Publisher("~events", CapabilityEvent).publish(CapabilityEvent(type=CapabilityEvent.SERVER_READY))
+        rospy.Publisher("~events", CapabilityEvent, queue_size=10).publish(CapabilityEvent(type=CapabilityEvent.SERVER_READY))
 
         rospy.spin()
 

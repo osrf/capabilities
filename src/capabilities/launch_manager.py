@@ -91,7 +91,7 @@ class LaunchManager(object):
         with self.__running_launch_files_lock:
             self.__running_launch_files = {}
         self.__outputs = [sys.stdout]
-        self.__event_publisher = rospy.Publisher("~events", CapabilityEvent)
+        self.__event_publisher = rospy.Publisher("~events", CapabilityEvent, queue_size=10)
         self.__event_subscriber = rospy.Subscriber(
             "~events", CapabilityEvent, self.handle_capability_events)
         self.stopping = False

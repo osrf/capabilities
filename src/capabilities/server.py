@@ -492,11 +492,16 @@ class CapabilityServer(object):
             rospy.logwarn("No runnable Capabilities loaded.")
 
     def __catch_and_log(self, func, *args, **kwargs):
+        warning_level_exceptions = ['because it is not running']
         try:
             return func(*args, **kwargs)
         except Exception as exc:
+            msg = "{0}".format(exc)
+            log_func = rospy.logerr
+            if [x for x in warning_level_exceptions if x in msg]:
+                log_func = rospy.logwarn
             rospy.logdebug(traceback.format_exc())
-            rospy.logerr('{0}: {1}'.format(exc.__class__.__name__, str(exc)))
+            log_func('{0}: {1}'.format(exc.__class__.__name__, msg))
             raise
 
     def handle_capability_events(self, event):
@@ -628,7 +633,8 @@ class CapabilityServer(object):
                 # It is possible that this cap was stopped by another cap in this list
                 # This is purely defensive
                 continue
-            rospy.loginfo("Capability '{0}' being stopped because its dependency '{1}' is being stopped.".format(cap.name, name))
+            rospy.loginfo("Capability '{0}' being stopped because "
+                          "its dependency '{1}' is being stopped.".format(cap.name, name))
             self.__stop_capability(cap.interface)
         capability.stopped()
         self.__launch_manager.stop_capability_provider(capability.pid)

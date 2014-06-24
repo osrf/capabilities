@@ -624,8 +624,9 @@ class CapabilityServer(object):
         capability = self.__capability_instances[name]
         rdepends = get_reverse_depends(name, self.__capability_instances.values())
         for cap in rdepends:
-            if cap.state in ['stopping', 'terminated']:
+            if cap.state in ['stopping', 'terminated']:  # pragma: no cover
                 # It is possible that this cap was stopped by another cap in this list
+                # This is purely defensive
                 continue
             rospy.loginfo("Capability '{0}' being stopped because its dependency '{1}' is being stopped.".format(cap.name, name))
             self.__stop_capability(cap.interface)

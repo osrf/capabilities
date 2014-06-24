@@ -69,7 +69,7 @@ class ServiceNotAvailableException(Exception):
 
 
 class CannotEstablishBondException(Exception):
-    def __init__(self):
+    def __init__(self):  # pragma: no cover
         Exception.__init__(self, "Failed to establish bond.")
 
 

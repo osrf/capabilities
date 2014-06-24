@@ -633,8 +633,8 @@ class CapabilityServer(object):
                 # It is possible that this cap was stopped by another cap in this list
                 # This is purely defensive
                 continue
-            rospy.loginfo("Capability '{0}' being stopped because "
-                          "its dependency '{1}' is being stopped.".format(cap.name, name))
+            rospy.loginfo(
+                "Capability '{0}' being stopped because its dependency '{1}' is being stopped.".format(cap.name, name))
             self.__stop_capability(cap.interface)
         capability.stopped()
         self.__launch_manager.stop_capability_provider(capability.pid)

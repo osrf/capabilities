@@ -6,7 +6,7 @@ from std_msgs.msg import String
 
 def main():
     rospy.init_node('minimal')
-    pub = rospy.Publisher('chatter', String)
+    pub = rospy.Publisher('chatter', String, queue_size=1000)
     start = rospy.Time.now()
     while not rospy.is_shutdown() and (rospy.Time.now() - start).to_sec() < 10:
         log = "hello world %s" % rospy.get_time()

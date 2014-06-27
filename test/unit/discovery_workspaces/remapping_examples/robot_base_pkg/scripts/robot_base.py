@@ -9,8 +9,8 @@ from std_msgs.msg import Float32
 
 def main():
     rospy.init_node('robot_base')
-    pub_front = rospy.Publisher('robot/front/distance', Float32)
-    pub_rear = rospy.Publisher('robot/rear/distance', Float32)
+    pub_front = rospy.Publisher('robot/front/distance', Float32, queue_size=1000)
+    pub_rear = rospy.Publisher('robot/rear/distance', Float32, queue_size=1000)
     while not rospy.is_shutdown():
         msg = Float32(random.choice([1, 2, 3, 4]))
         rospy.loginfo("Sending distance: " + str(msg))

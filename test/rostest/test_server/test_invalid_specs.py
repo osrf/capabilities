@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
         capability_server._CapabilityServer__load_capabilities()
         capability_server._CapabilityServer__populate_default_providers()
         rospy.Subscriber('~events', CapabilityEvent, capability_server.handle_capability_events)
-        pub = rospy.Publisher("~events", CapabilityEvent)
+        pub = rospy.Publisher("~events", CapabilityEvent, queue_size=1000)
         rospy.sleep(1)
         msg = CapabilityEvent()
         msg.capability = 'some_pkg/NotACapability'

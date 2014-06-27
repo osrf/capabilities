@@ -122,7 +122,7 @@ class Test(unittest.TestCase):
 
     def test_external_event(self):
         # publish even from external rospy instance
-        pub = rospy.Publisher("~events", CapabilityEvent)
+        pub = rospy.Publisher("~events", CapabilityEvent, queue_size=1000)
         rospy.sleep(1)
         pub.publish(CapabilityEvent())
         rospy.sleep(1)

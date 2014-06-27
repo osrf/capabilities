@@ -492,11 +492,16 @@ class CapabilityServer(object):
             rospy.logwarn("No runnable Capabilities loaded.")
 
     def __catch_and_log(self, func, *args, **kwargs):
+        warning_level_exceptions = ['because it is not running']
         try:
             return func(*args, **kwargs)
         except Exception as exc:
+            msg = "{0}".format(exc)
+            log_func = rospy.logerr
+            if [x for x in warning_level_exceptions if x in msg]:
+                log_func = rospy.logwarn
             rospy.logdebug(traceback.format_exc())
-            rospy.logerr('{0}: {1}'.format(exc.__class__.__name__, str(exc)))
+            log_func('{0}: {1}'.format(exc.__class__.__name__, msg))
             raise
 
     def handle_capability_events(self, event):
@@ -624,6 +629,12 @@ class CapabilityServer(object):
         capability = self.__capability_instances[name]
         rdepends = get_reverse_depends(name, self.__capability_instances.values())
         for cap in rdepends:
+            if cap.state in ['stopping', 'terminated']:  # pragma: no cover
+                # It is possible that this cap was stopped by another cap in this list
+                # This is purely defensive
+                continue
+            rospy.loginfo(
+                "Capability '{0}' being stopped because its dependency '{1}' is being stopped.".format(cap.name, name))
             self.__stop_capability(cap.interface)
         capability.stopped()
         self.__launch_manager.stop_capability_provider(capability.pid)
@@ -796,7 +807,9 @@ class CapabilityServer(object):
 
     def __free_capability(self, capability_name, bond_id):
         if capability_name not in self.__capability_instances:
-            raise RuntimeError("No Capability '{0}' in use".format(capability_name))
+            # If you update this exception's message, then update the corresponding code
+            # in capabilities.client.CapabilitiesClient.free_capability()
+            raise RuntimeError("Cannot free Capability '{0}', because it is not running".format(capability_name))
         capability = self.__capability_instances[capability_name]
         if bond_id not in capability.bonds:
             raise RuntimeError("Given bond_id '{0}' not associated with given capability '{1}'"

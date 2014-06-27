@@ -14,6 +14,7 @@ from test_ros_services import call_service
 from test_ros_services import wait_for_capability_server
 
 from capabilities.client import CapabilitiesClient
+from capabilities.client import CapabilityNotRunningException
 
 TEST_NAME = 'test_remapping'
 
@@ -63,7 +64,7 @@ class Test(unittest.TestCase):
         result = wait_for_result_to_happen(expected, ['minimal_pkg/Minimal'])
         assert sorted(result) == sorted(expected), (sorted(result), sorted(expected))
         # Try to over free it and get an exception
-        with assert_raises(ServiceException):
+        with assert_raises(CapabilityNotRunningException):
             c.free_capability('minimal_pkg/Minimal')
         # Use it again, then break the bond and assert it goes down because of that
         c.use_capability('minimal_pkg/Minimal')

@@ -62,6 +62,29 @@ from capabilities.srv import FreeCapability
 from capabilities.srv import UseCapability
 
 
+class ServiceNotAvailableException(Exception):
+    def __init__(self, service_name):
+        Exception.__init__(self, "Required ROS service '{0}' not available"
+                                 .format(service_name))
+
+
+class CannotEstablishBondException(Exception):
+    def __init__(self):  # pragma: no cover
+        Exception.__init__(self, "Failed to establish bond.")
+
+
+class CapabilityNotRunningException(Exception):
+    def __init__(self, interface):
+        Exception.__init__(self, "Capability interface '{0}' is not running."
+                                 .format(interface))
+
+
+class CapabilityNotInUseException(Exception):
+    def __init__(self, interface):
+        Exception.__init__(self, "Capability interface '{0}' not previously used."
+                                 .format(interface))
+
+
 class CapabilitiesClient(object):
     """Single point of entry for interacting with a remote capability server.
 
@@ -185,14 +208,24 @@ class CapabilitiesClient(object):
         :type timeout: float
         :returns: :py:obj:`True` if successful, otherwise :py:obj:`False`
         :rtype: :py:obj:`bool`
+        :raises: CapabilityNotInUseException if the capability has not been previously used
+        :raises: CapabilityNotRunningException if the capability has already been stopped
+            which can be caused by a capability it depends on stopping
+        :raises: ServiceNotAvailableException if the required service is not available
+            after the timeout has expired
         """
         if capability_interface not in self._used_capabilities:
             rospy.logerr("Cannot free capability interface '{0}', because it was not first used."
                          .format(capability_interface))
-            return False
+            CapabilityNotInUseException(capability_interface)
         if self.__wait_for_service(self.__free_capability, timeout) is False:
-            return False
-        self.__free_capability.call(capability_interface, self._bond_id)
+            raise ServiceNotAvailableException(self.__free_capability.resolved_name)
+        try:
+            self.__free_capability.call(capability_interface, self._bond_id)
+        except rospy.ServiceException as exc:
+            exc_str = "{0}".format(exc)
+            if 'Cannot free Capability' in exc_str and 'because it is not running' in exc_str:
+                raise CapabilityNotRunningException(capability_interface)
         return True
 
     def shutdown(self):
@@ -218,13 +251,16 @@ class CapabilitiesClient(object):
         :type timeout: float
         :returns: :py:obj:`True` if successful, otherwise :py:obj:`False`
         :rtype: :py:obj:`bool`
+        :raises: ServiceNotAvailableException if the required service is not available
+            after the timeout has expired
+        :raise: CannotEstablishBondException is the bond with the capability_server cannot be established
         """
         # If no bond has been established, establish one first
         if self._bond is None:
             if self.establish_bond(timeout) is None:  # pragma: no cover
-                return False
+                raise CannotEstablishBondException()
         if self.__wait_for_service(self.__use_capability, timeout) is False:  # pragma: no cover
-            return False
+            raise ServiceNotAvailableException(self.__use_capability.resolved_name)
         self.__use_capability.call(capability_interface, preferred_provider or '', self._bond_id)
         self._used_capabilities.add(capability_interface)
         return True

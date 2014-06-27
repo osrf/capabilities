@@ -117,8 +117,12 @@ class LaunchManager(object):
             if self.stopping:
                 return  # pragma: no cover
             self.stopping = True
-            for pid in self.__running_launch_files:
-                self.__stop_by_pid(pid)  # pragma: no cover
+            for pid in self.__running_launch_files:  # pragma: no cover
+                try:
+                    self.__stop_by_pid(pid)
+                except RuntimeError as exc:
+                    if "launch file with PID" not in "{0}".format(exc):
+                        raise  # Re-raise
 
     def __stop_by_pid(self, pid):
         if pid not in self.__running_launch_files:

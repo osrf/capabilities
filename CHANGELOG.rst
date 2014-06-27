@@ -2,8 +2,8 @@
 Changelog for package capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2014-06-27)
+------------------
 * downgrade one of the exceptions to a warning
 * fixup tests to reflect changes to client API
 * Increase queue_size to 1000 for publishers

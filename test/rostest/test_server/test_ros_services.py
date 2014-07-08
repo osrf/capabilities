@@ -97,7 +97,8 @@ class Test(unittest.TestCase):
         call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')
         # fail to stop a capability which isn't running
         with assert_raises(ServiceException):
-            call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')
+            resp = call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')
+            print(resp)
         # fail to start a capability with a provider which doesn't exist
         with assert_raises(ServiceException):
             call_service('/capability_server/start_capability', 'minimal_pkg/Minimal', 'minimal_pkg/minimal2')

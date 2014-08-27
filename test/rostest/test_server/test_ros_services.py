@@ -84,6 +84,14 @@ class Test(unittest.TestCase):
                 return
         raise AssertionError("Capability '{0}' failed to stop after 10 seconds.".format(capability))
 
+    def ensure_capability_started(self, capability):
+        for count in range(20):
+            rospy.sleep(0.5)
+            resp = call_service('/capability_server/get_running_capabilities')
+            if capability in [x.capability.capability for x in resp.running_capabilities]:
+                return
+        raise AssertionError("Capability '{0}' failed to start after 10 seconds.".format(capability))
+
     def test_start_stop_capabilities(self):
         # fail to start interface without a provider
         with assert_raises(ServiceException):
@@ -93,9 +101,7 @@ class Test(unittest.TestCase):
             call_service('/capability_server/start_capability', 'minimal_pkg/Minimal2', 'minimal_pkg/minimal')
         # start an interface by explicitly giving a provider
         call_service('/capability_server/start_capability', 'minimal_pkg/Minimal', 'minimal_pkg/minimal')
-        # Wait a reasonable amount of time for roslaunch to startup
-        # If it doesn't fully startup you get a traceback, but it will not affect the test
-        rospy.sleep(2)
+        self.ensure_capability_started('minimal_pkg/Minimal')
         # get list of running capabilities
         resp = call_service('/capability_server/get_running_capabilities')
         assert len(resp.running_capabilities) > 0, resp
@@ -113,11 +119,15 @@ class Test(unittest.TestCase):
             call_service('/capability_server/start_capability', 'minimal_pkg/Minimal', 'minimal_pkg/minimal2')
         # start a capability without specifying a provider
         call_service('/capability_server/start_capability', 'minimal_pkg/Minimal', '')
+        self.ensure_capability_started('minimal_pkg/Minimal')
         call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')
+        self.ensure_capability_stopped('minimal_pkg/Minimal')
         # start a provider which depends on an interface without specifiying a provider
         call_service('/capability_server/start_capability', 'minimal_pkg/SpecificMinimal',
                      'no_provider_pkg/specific_minimal2')
+        self.ensure_capability_started('minimal_pkg/SpecificMinimal')
         call_service('/capability_server/stop_capability', 'minimal_pkg/SpecificMinimal')
+        self.ensure_capability_stopped('minimal_pkg/SpecificMinimal')
 
     def test_service_discovery(self):
         # get spec index via a service call (This tests the handling in the server)

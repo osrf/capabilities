@@ -76,6 +76,14 @@ class Test(unittest.TestCase):
         resp = call_service('/capability_server/get_nodelet_manager_name')
         assert resp.nodelet_manager_name == '/capability_server_nodelet_manager', resp
 
+    def ensure_capability_stopped(self, capability):
+        for count in range(20):
+            rospy.sleep(0.5)
+            resp = call_service('/capability_server/get_running_capabilities')
+            if capability not in [x.capability.capability for x in resp.running_capabilities]:
+                return
+        raise AssertionError("Capability '{0}' failed to stop after 10 seconds.".format(capability))
+
     def test_start_stop_capabilities(self):
         # fail to start interface without a provider
         with assert_raises(ServiceException):
@@ -95,6 +103,7 @@ class Test(unittest.TestCase):
         assert 'minimal_pkg/Minimal' == capability.capability, capability.capability
         # stop the capability started above
         call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')
+        self.ensure_capability_stopped('minimal_pkg/Minimal')
         # fail to stop a capability which isn't running
         with assert_raises(ServiceException):
             resp = call_service('/capability_server/stop_capability', 'minimal_pkg/Minimal')

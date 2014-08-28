@@ -689,11 +689,30 @@ class CapabilityServer(object):
         provider = providers[preferred_provider]
         instances = self.__get_capability_instances_from_provider(provider)
         with self.__graph_lock:
+            # If the requested capability has an existing instance, we don't start it
+            # again. Return a result that lets the callee know this happened.
+            requested_instance = instances[0]
+            if requested_instance.interface in self.__capability_instances:
+                requested_instance_state = self.__capability_instances[
+                    requested_instance.interface].state
+                if requested_instance_state in ['running']:
+                    # Current instance is running (or will be soon)
+                    return StartCapabilityResponse.RESULT_CURRENTLY_RUNNING
+                elif requested_instance_state in ['waiting', 'launching']:
+                    return StartCapabilityResponse.RESULT_CURRENTLY_STARTING
+                elif state in ['stopped', 'terminated']:
+                    # Current instance is in the process of stopping
+                    return StartCapabilityResponse.RESULT_CURRENTLY_STOPPING
+                else:
+                    raise RuntimeError(
+                        "Instance for capability '{0}' has improper state '{1}'"
+                        .format(capability, requested_instance_state))
+
             for x in instances:
                 if x.interface not in self.__capability_instances:
                     self.__capability_instances[x.interface] = x
             self.__update_graph()
-        return True
+        return StartCapabilityResponse.RESULT_SUCCESS
 
     def handle_get_capability_specs(self, req):
         return self.__catch_and_log(self._handle_get_capability_specs, req)

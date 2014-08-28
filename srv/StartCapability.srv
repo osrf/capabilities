@@ -1,4 +1,9 @@
 string capability
 string preferred_provider
 ---
-bool successful
+uint8 result
+uint8 RESULT_SUCCESS=0
+uint8 RESULT_CURRENTLY_STARTING=1 # Cannot start because capability is currently starting
+uint8 RESULT_CURRENTLY_RUNNING=2 # Cannot start because capability is currently running
+uint8 RESULT_CURRENTLY_STOPPING=3 # Cannot start because capability is currently stopping
+

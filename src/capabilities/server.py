@@ -700,7 +700,7 @@ class CapabilityServer(object):
                     return StartCapabilityResponse.RESULT_CURRENTLY_RUNNING
                 elif requested_instance_state in ['waiting', 'launching']:
                     return StartCapabilityResponse.RESULT_CURRENTLY_STARTING
-                elif state in ['stopped', 'terminated']:
+                elif requested_instance_state in ['stopping', 'terminated']:
                     # Current instance is in the process of stopping
                     return StartCapabilityResponse.RESULT_CURRENTLY_STOPPING
                 else:

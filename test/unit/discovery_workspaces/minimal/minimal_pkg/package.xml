@@ -15,6 +15,12 @@
     <capability_provider>
       providers/minimal.yaml
     </capability_provider>
+    <capability_interface>
+      interfaces/SlowToDie.yaml
+    </capability_interface>
+    <capability_provider>
+      providers/slow_to_die.yaml
+    </capability_provider>
     <semantic_capability_interface>
       interfaces/SpecificMinimal.yaml
     </semantic_capability_interface>
@@ -24,3 +30,4 @@
 
   </export>
 </package>
+

@@ -1,0 +1,7 @@
+%YAML 1.1
+---
+name: SlowToDie
+spec_version: 1
+spec_type: interface
+interface: {}
+

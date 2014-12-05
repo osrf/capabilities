@@ -780,7 +780,7 @@ class CapabilityServer(object):
             msg += " with provider '{0}'".format(req.preferred_provider)
         rospy.loginfo(msg)
         ret = self.__start_capability(req.capability, req.preferred_provider)
-        return StartCapabilityResponse(ret or False)
+        return StartCapabilityResponse(ret)
 
     def handle_stop_capability(self, req):
         return self.__catch_and_log(self._handle_stop_capability, req)

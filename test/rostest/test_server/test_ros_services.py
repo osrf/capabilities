@@ -136,16 +136,6 @@ class Test(unittest.TestCase):
         # ask to start the same capability again. it should be running already, so this should fail
         resp = call_service('/capability_server/start_capability', 'minimal_pkg/SlowToDie', 'minimal_pkg/slow_to_die')
         assert resp.result == resp.RESULT_CURRENTLY_RUNNING
-        # ask the capability to stop (should return immediately, but capability should take a while to shutdown)
-        call_service('/capability_server/stop_capability', 'minimal_pkg/SlowToDie')
-        # ask to start the same capability again. it should still be shutting down, so this should return an error
-        resp = call_service('/capability_server/start_capability', 'minimal_pkg/SlowToDie', 'minimal_pkg/slow_to_die')
-        assert resp.result == resp.RESULT_CURRENTLY_STOPPING
-        # wait for capability to die, then start it again. should succeed this time
-        rospy.sleep(3.5)
-        resp = call_service('/capability_server/start_capability', 'minimal_pkg/SlowToDie', 'minimal_pkg/slow_to_die')
-        assert resp.result == resp.RESULT_SUCCESS
-        self.ensure_capability_started('minimal_pkg/SlowToDie')
         # stop the capability to ensure it doesn't interfere with successive tests
         call_service('/capability_server/stop_capability', 'minimal_pkg/SlowToDie')
         rospy.sleep(3.5)

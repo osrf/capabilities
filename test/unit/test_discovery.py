@@ -20,11 +20,13 @@ def test_load_minimal():
     expected = sorted([
         'minimal_pkg/Minimal',
         'minimal_pkg/minimal',
+        'minimal_pkg/SlowToDie',
+        'minimal_pkg/slow_to_die',
         'minimal_pkg/SpecificMinimal',
         'minimal_pkg/specific_minimal'
     ])
     assert sorted(spec_index.specs.keys()) == expected
-    assert sorted(spec_index.provider_names) == ['minimal_pkg/minimal', 'minimal_pkg/specific_minimal']
+    assert sorted(spec_index.provider_names) == ['minimal_pkg/minimal', 'minimal_pkg/slow_to_die', 'minimal_pkg/specific_minimal']
     assert 'minimal_pkg/Minimal' in spec_index.interface_paths
     assert 'minimal_pkg/minimal' in spec_index.provider_paths
     assert 'minimal_pkg/SpecificMinimal' in spec_index.semantic_interface_paths

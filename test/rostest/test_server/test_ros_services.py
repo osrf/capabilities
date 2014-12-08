@@ -129,6 +129,17 @@ class Test(unittest.TestCase):
         call_service('/capability_server/stop_capability', 'minimal_pkg/SpecificMinimal')
         self.ensure_capability_stopped('minimal_pkg/SpecificMinimal')
 
+    def test_restart_capability(self):
+        # start provider that will take a while to die
+        call_service('/capability_server/start_capability', 'minimal_pkg/SlowToDie', 'minimal_pkg/slow_to_die')
+        self.ensure_capability_started('minimal_pkg/SlowToDie')
+        # ask to start the same capability again. it should be running already, so this should fail
+        resp = call_service('/capability_server/start_capability', 'minimal_pkg/SlowToDie', 'minimal_pkg/slow_to_die')
+        assert resp.result == resp.RESULT_CURRENTLY_RUNNING
+        # stop the capability to ensure it doesn't interfere with successive tests
+        call_service('/capability_server/stop_capability', 'minimal_pkg/SlowToDie')
+        rospy.sleep(3.5)
+
     def test_service_discovery(self):
         # get spec index via a service call (This tests the handling in the server)
         si, errors = spec_index_from_service()

@@ -327,6 +327,9 @@ class CapabilityServer(object):
         # Collect default arguments
         self.__populate_default_providers()
 
+        rospy.Subscriber(
+            '~events', CapabilityEvent, self.handle_capability_events)
+
         self.__start_capability_service = rospy.Service(
             '~start_capability', StartCapability, self.handle_start_capability)
 
@@ -374,9 +377,6 @@ class CapabilityServer(object):
         self.__get_remappings_service = rospy.Service(
             '~get_remappings', GetRemappings,
             self.handle_get_remappings)
-
-        rospy.Subscriber(
-            '~events', CapabilityEvent, self.handle_capability_events)
 
         rospy.loginfo("Capability Server Ready")
         rospy.Publisher("~events", CapabilityEvent, queue_size=1000).publish(

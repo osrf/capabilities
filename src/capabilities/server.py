@@ -432,6 +432,13 @@ class CapabilityServer(object):
                 if provider.implements == interface:
                     spec_index.remove_provider(provider.name)
         self.__spec_index = spec_index
+        # Prune spec_file_index
+        spec_paths = spec_index.interface_paths.values() + \
+            spec_index.semantic_interface_paths.values() + \
+            spec_index.provider_paths.values()
+        for package_name, package_dict in self.spec_file_index.items():
+            for spec_type in ['capability_interface', 'semantic_capability_interface', 'capability_provider']:
+                package_dict[spec_type][:] = [path for path in package_dict[spec_type] if path in spec_paths]
 
     def __populate_default_providers(self):
         # Collect available interfaces

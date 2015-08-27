@@ -401,7 +401,7 @@ class CapabilityServer(object):
             if self.__package_whitelist and package not in self.__package_whitelist:
                 rospy.loginfo("Package '{0}' not in whitelist, skipping.".format(package))
                 del self.spec_file_index[package]
-            if self.__package_blacklist and package in self.__package_blacklist:
+            elif self.__package_blacklist and package in self.__package_blacklist:
                 rospy.loginfo("Package '{0}' in blacklist, skipping.".format(package))
                 del self.spec_file_index[package]
         # Generate spec_index from spec file index
@@ -422,7 +422,7 @@ class CapabilityServer(object):
                     removed_interfaces.append(spec)
                     remove_func(spec)
                     rospy.loginfo("Spec '{0}' is not in the whitelist, skipping.".format(spec))
-                if self.__blacklist and spec in self.__blacklist:
+                elif self.__blacklist and spec in self.__blacklist:
                     removed_interfaces.append(spec)
                     remove_func(spec)
                     rospy.loginfo("Spec '{0}' is in the blacklist, skipping.".format(spec))

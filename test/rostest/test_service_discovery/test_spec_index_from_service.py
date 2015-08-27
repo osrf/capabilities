@@ -16,6 +16,8 @@ class Test(unittest.TestCase):
         si, errors = spec_index_from_service()
         assert not errors
         assert 'minimal_pkg/Minimal' in si.interfaces
+        assert 'minimal_pkg/SpecificMinimal' in si.semantic_interfaces
+        assert 'minimal_pkg/SlowToDie' not in si.interfaces
 
 if __name__ == '__main__':
     import rospy

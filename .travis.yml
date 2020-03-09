@@ -3,7 +3,7 @@ python:
   - "2.7"
 # command to install dependencies
 install:
-  - pip install nose coverage pep8 PyYAML catkin_pkg rospkg empy python-coveralls --use-mirrors
+  - pip install nose coverage pep8 PyYAML catkin_pkg rospkg empy python-coveralls
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update

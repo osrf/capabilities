@@ -2,8 +2,8 @@
 Changelog for package capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.1 (2020-03-10)
+------------------
 * Updated ``package.xml`` to format 3 and and used condition dependencies to support Python3 (`#91 <https://github.com/osrf/capabilities/issues/91>`_)
 * Contributors: William Woodall
 

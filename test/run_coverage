@@ -3,9 +3,9 @@
 import sys
 
 try:
-    from coverage import main
+    from coverage.cmdline import main
 except ImportError as exc:
-    print("Error: failed to run coverage: {0}".format(exc))
+    sys.exit("Error: failed to run coverage: {0}".format(exc))
 
 if __name__ == '__main__':
     sys.exit(main())

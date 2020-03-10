@@ -1,21 +1,20 @@
+dist: bionic
 language: python
 python:
   - "2.7"
 # command to install dependencies
 install:
-  - pip install nose coverage pep8 PyYAML catkin_pkg rospkg empy python-coveralls --use-mirrors
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
+  - pip install nose coverage pep8 PyYAML catkin_pkg rospkg empy python-coveralls
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update
   - sudo apt-get install python-rosdep
   - sudo `which rosdep` init
   - rosdep update
-  - rosdep install --from-paths ./ --rosdistro hydro -y
-# Install image_proc to get a nodelet instaleld as a workaround to https://github.com/ros/pluginlib/pull/22
-  - sudo apt-get install ros-hydro-image-proc
+  - rosdep install --from-paths ./ --rosdistro melodic -y
 # command to run tests
 script:
-  - source /opt/ros/hydro/setup.bash
+  - source /opt/ros/melodic/setup.bash
   - make coverage
   - catkin_test_results /tmp/capabilities_build/build/test_results
 notifications:

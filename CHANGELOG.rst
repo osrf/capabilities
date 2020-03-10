@@ -2,8 +2,8 @@
 Changelog for package capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.0 (2020-03-09)
+------------------
 * Bump CMake version to avoid CMP0048 warning (`#89 <https://github.com/osrf/capabilities/issues/89>`_)
 * Fixed bug by pruning spec files by black/white lists `#84 <https://github.com/osrf/capabilities/issues/84>`_ from commaster90/fix-1
   This ensures ``GetCapabilitySpecs`` service returns the filtered specs.

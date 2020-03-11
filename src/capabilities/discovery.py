@@ -88,6 +88,7 @@ You can use this API as follows, (examples assume use of the
 
 """
 
+import itertools
 import os
 
 from catkin_pkg.packages import find_packages
@@ -434,7 +435,8 @@ class SpecIndex(object):
         :returns: list of the names for all specs of all types
         :rtype: :py:obj:`list` (:py:obj:`str`)
         """
-        return self.interfaces.keys() + self.semantic_interfaces.keys() + self.providers.keys()
+        return list(itertools.chain(
+            self.interfaces.keys(), self.semantic_interfaces.keys(), self.providers.keys())
 
     @property
     def specs(self):

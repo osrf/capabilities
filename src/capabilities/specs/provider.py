@@ -187,7 +187,7 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
         capability_provider = CapabilityProvider(name, spec_version, implements, launch_file,
                                                  description, remappings, nodelet_manager)
     except (AssertionError, ValueError) as e:  # Catch remapping errors
-            raise InvalidProvider(str(e), file_name)
+        raise InvalidProvider(str(e), file_name)
     depends_on = spec.get('depends_on', {})
     if isinstance(depends_on, str):
         depends_on = [depends_on]

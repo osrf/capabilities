@@ -103,9 +103,9 @@ from capabilities.specs.semantic_interface import semantic_capability_interface_
 
 USER_SERVICE_REASON = 'user service call'
 
-## Hack to squelch output from Service call failure ##
+# Hack to squelch output from Service call failure #
 
-from rospy.impl import tcpros_service
+from rospy.impl import tcpros_service  # noqa: E402
 
 
 def custom__handle_request(self, transport, request):  # pragma: no cover
@@ -126,9 +126,10 @@ def custom__handle_request(self, transport, request):  # pragma: no cover
         # rospy.logerr("Error processing request: %s\n%s" % (e, traceback.print_exc()))
         self._write_service_error(transport, "error processing request: %s" % e)
 
+
 tcpros_service.ServiceImpl._handle_request = custom__handle_request
 
-## End hacks ##
+# End hacks #
 
 
 class CapabilityInstance(object):

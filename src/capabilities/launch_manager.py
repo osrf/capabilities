@@ -75,6 +75,7 @@ def which(program):
                 return exe_file
     return None
 
+
 _this_dir = os.path.dirname(__file__)
 _placeholder_script = os.path.join(_this_dir, 'placeholder_script')
 _nodelet_manager_launch_file = os.path.join(_this_dir, 'capability_server_nodelet_manager.launch')

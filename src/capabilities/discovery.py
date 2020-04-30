@@ -206,7 +206,7 @@ def spec_file_index_from_package_index(package_index):
                 spec_file_index[package_name][tag].append(spec_file_path)
         # Prune packages with no specs
         if (
-                not spec_file_index[package_name]['capability_interface']
+            not spec_file_index[package_name]['capability_interface']
             and not spec_file_index[package_name]['capability_provider']
             and not spec_file_index[package_name]['semantic_capability_interface']
         ):

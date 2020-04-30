@@ -2,7 +2,7 @@
 
 import sys
 
-#### HACK until rospy uses the threading module rather than the thread module
+# HACK until rospy uses the threading module rather than the thread module #
 import threading
 
 from rospy.impl import tcpros_service
@@ -18,10 +18,11 @@ class MyThread(object):
         t.start()
         self.__threads_objs.append(t)
 
-tcpros_service._thread = MyThread()
-#### END HACK
 
-from capabilities.server import main
+tcpros_service._thread = MyThread()
+# END HACK #
+
+from capabilities.server import main  # noqa: E402 # REMOVE NOQA WITH HACK
 
 if __name__ == '__main__':
     sys.exit(main())

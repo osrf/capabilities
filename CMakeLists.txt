@@ -34,7 +34,7 @@ generate_messages(DEPENDENCIES std_msgs std_srvs)
 catkin_package()
 
 ## Install scripts
-install(PROGRAMS scripts/capability_server
+catkin_install_python(PROGRAMS scripts/capability_server
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)

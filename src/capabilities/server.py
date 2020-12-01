@@ -685,7 +685,9 @@ class CapabilityServer(object):
         return providers  # Could be empty
 
     def __start_capability(self, capability, preferred_provider):
-        if capability not in list(self.__spec_index.interfaces.keys()) + list(self.__spec_index.semantic_interfaces.keys()):
+        if capability not in (
+                list(self.__spec_index.interfaces.keys()) +
+                list(self.__spec_index.semantic_interfaces.keys())):
             raise RuntimeError("Capability '{0}' not found.".format(capability))
         # If no preferred provider is given, use the default
         preferred_provider = preferred_provider or self.__default_providers[capability]
@@ -909,9 +911,13 @@ class CapabilityServer(object):
 
     def _handle_get_providers(self, req):
         if req.interface:
-            if req.interface not in list(self.__spec_index.interfaces.keys()) + list(self.__spec_index.semantic_interfaces.keys()):
+            if req.interface not in (
+                    list(self.__spec_index.interfaces.keys()) +
+                    list(self.__spec_index.semantic_interfaces.keys())):
                 raise RuntimeError("Capability Interface '{0}' not found.".format(req.interface))
-            providers = list(self.__get_providers_for_interface(req.interface, allow_semantic=req.include_semantic).keys())
+            providers = list(
+                self.__get_providers_for_interface(
+                    req.interface, allow_semantic=req.include_semantic).keys())
             default_provider = self.__default_providers[req.interface]
         else:
             providers = self.__spec_index.provider_names

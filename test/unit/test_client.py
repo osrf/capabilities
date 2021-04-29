@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from .common import assert_raises
 
 from capabilities.client import CapabilitiesClient

@@ -398,7 +398,7 @@ class CapabilityServer(object):
         package_index = package_index_from_package_path(self.__package_paths)
         self.spec_file_index = spec_file_index_from_package_index(package_index)
         # Prune packages by black and white list
-        for package in self.spec_file_index.keys():
+        for package in list(self.spec_file_index.keys()):
             if self.__package_whitelist and package not in self.__package_whitelist:
                 rospy.loginfo("Package '{0}' not in whitelist, skipping.".format(package))
                 del self.spec_file_index[package]
@@ -991,7 +991,7 @@ class CapabilityServer(object):
                 remappings[map_type].update(mapping)
             # Collapse remapping chains
             for mapping in remappings.values():
-                for key, value in mapping.items():
+                for key, value in list(mapping.items()):
                     if value in mapping:
                         mapping[key] = mapping[value]
                         del mapping[value]

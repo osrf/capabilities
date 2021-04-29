@@ -485,7 +485,7 @@ class CapabilityInterface(Interface):
 
     def __str__(self):
         elements = "topics:\n"
-        required_and_provided = list(list(self.required_topics.keys()) + list(self.provided_topics.keys()))
+        required_and_provided = list(self.required_topics.keys()) + list(self.provided_topics.keys())
         both = [x for x in self.topics if x not in required_and_provided]
         for name, topic in self.topics.items():
             if name not in both:
@@ -504,7 +504,7 @@ class CapabilityInterface(Interface):
             elements += "\n          ".join(str(topic).splitlines())
             elements += "\n"
         elements += "    services:\n"
-        required_and_provided = list(list(self.required_services.keys()) + list(self.provided_services.keys()))
+        required_and_provided = list(self.required_services.keys()) + list(self.provided_services.keys())
         both = [x for x in self.services if x not in required_and_provided]
         for name, service in self.services.items():
             if name not in both:
@@ -523,7 +523,7 @@ class CapabilityInterface(Interface):
             elements += "\n          ".join(str(service).splitlines())
             elements += "\n"
         elements += "    actions:\n"
-        required_and_provided = list(list(self.required_actions.keys()) + list(self.provided_actions.keys()))
+        required_and_provided = list(self.required_actions.keys()) + list(self.provided_actions.keys())
         both = [x for x in self.actions if x not in required_and_provided]
         for name, action in self.actions.items():
             if name not in both:
@@ -542,7 +542,7 @@ class CapabilityInterface(Interface):
             elements += "\n          ".join(str(action).splitlines())
             elements += "\n"
         elements += "    parameters:\n"
-        required_and_provided = list(list(self.required_parameters.keys()) + list(self.provided_parameters.keys()))
+        required_and_provided = list(self.required_parameters.keys()) + list(self.provided_parameters.keys())
         both = [x for x in self.parameters if x not in required_and_provided]
         for name, parameter in self.parameters.items():
             if name not in both:

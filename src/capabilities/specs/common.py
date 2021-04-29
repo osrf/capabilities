@@ -38,6 +38,11 @@
 
 from __future__ import print_function
 
+try:
+    __basestring = basestring
+except NameError:  # pragma: no cover
+    __basestring = str
+
 
 def validate_spec_name(name):
     """Validates a given spec name follows the 'package/spec_name' format
@@ -60,7 +65,7 @@ def split_spec_name(name):
     :raises: AssertionError if spec name is not a str
     :raises: ValueError if spec name is invalid
     """
-    assert isinstance(name, basestring), "a spec name must be a string"
+    assert isinstance(name, __basestring), "a spec name must be a string"
     split_name = name.split('/')
     if len(split_name) != 2 or not split_name[0] or not split_name[1]:
         raise ValueError("Invalid spec name '{0}', it should be of the form 'package/spec_name'".format(name))

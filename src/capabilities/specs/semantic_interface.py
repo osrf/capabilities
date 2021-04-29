@@ -116,7 +116,7 @@ def semantic_capability_interface_from_file_path(file_path):
     :raises: :py:exc:`OSError` if the given file does not exist
     """
     with open(os.path.abspath(file_path), 'r') as f:
-        return semantic_capability_interface_from_dict(yaml.load(f.read()), file_path)
+        return semantic_capability_interface_from_dict(yaml.safe_load(f.read()), file_path)
 
 
 def semantic_capability_interface_from_file(file_handle):
@@ -130,7 +130,7 @@ def semantic_capability_interface_from_file(file_handle):
     :rtype: :py:class:`SemanticCapabilityInterface`
     :raises: :py:exc:`OSError` if the given file does not exist
     """
-    return semantic_capability_interface_from_dict(yaml.load(file_handle.read()), file_handle.name)
+    return semantic_capability_interface_from_dict(yaml.safe_load(file_handle.read()), file_handle.name)
 
 
 def semantic_capability_interface_from_string(string, file_name='<string>'):
@@ -146,7 +146,7 @@ def semantic_capability_interface_from_string(string, file_name='<string>'):
     :rtype: :py:class:`SemanticCapabilityInterface`
     :raises: :py:exc:`AttributeError` if the given value for string is not a str
     """
-    return semantic_capability_interface_from_dict(yaml.load(string), file_name)
+    return semantic_capability_interface_from_dict(yaml.safe_load(string), file_name)
 
 
 def semantic_capability_interface_from_dict(spec, file_name='<dict>'):

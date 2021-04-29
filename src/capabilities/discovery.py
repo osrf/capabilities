@@ -436,7 +436,7 @@ class SpecIndex(object):
         :rtype: :py:obj:`list` (:py:obj:`str`)
         """
         return list(itertools.chain(
-            self.interfaces.keys(), self.semantic_interfaces.keys(), self.providers.keys()))
+            list(self.interfaces.keys()), list(self.semantic_interfaces.keys()), list(self.providers.keys())))
 
     @property
     def specs(self):

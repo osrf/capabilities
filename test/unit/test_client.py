@@ -1,4 +1,4 @@
-from common import assert_raises
+from .common import assert_raises
 
 from capabilities.client import CapabilitiesClient
 from capabilities.client import ServiceNotAvailableException

@@ -31,7 +31,7 @@ add_service_files(FILES
 
 generate_messages(DEPENDENCIES std_msgs std_srvs)
 
-catkin_package()
+catkin_package(CATKIN_DEPENDS message_runtime std_msgs std_srvs)
 
 ## Install scripts
 catkin_install_python(PROGRAMS scripts/capability_server

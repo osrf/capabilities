@@ -4,13 +4,14 @@ python:
   - "2.7"
 # command to install dependencies
 install:
-  - pip install nose coverage pep8 PyYAML catkin_pkg rospkg empy python-coveralls
+  - pip install nose catkin_pkg rospkg empy python-coveralls
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update
   - sudo apt-get install python-rosdep
   - sudo `which rosdep` init
   - rosdep update
+  - export ROS_PYTHON_VERSION=2
   - rosdep install --from-paths ./ --rosdistro melodic -y
 # command to run tests
 script:

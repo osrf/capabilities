@@ -17,5 +17,5 @@
         'invalid'
     </rosparam>
   </node>
-  <test test-name="ros_services" pkg="capabilities" type="test_ros_services.py"/>
+  <test test-name="ros_services" pkg="capabilities" type="test_ros_services.py" time-limit="120.0" />
 </launch>

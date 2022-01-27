@@ -380,7 +380,7 @@ class CapabilityServer(object):
             self.handle_get_remappings)
 
         rospy.loginfo("Capability Server Ready")
-        rospy.Publisher("~events", CapabilityEvent, queue_size=1000).publish(
+        rospy.Publisher("~events", CapabilityEvent, queue_size=1000, latch=True).publish(
             CapabilityEvent(type=CapabilityEvent.SERVER_READY))
 
         rospy.spin()

@@ -383,7 +383,7 @@ class CapabilityServer(object):
         heartbeat_interval = rospy.get_param('~heartbeat_interval', 1.0)
         rospy.Timer(
                 rospy.Duration(heartbeat_interval),
-                rospy.Publisher("~events", CapabilityEvent, queue_size=1000).publish(
+                lambda event: rospy.Publisher("~events", CapabilityEvent, queue_size=1000).publish(
                     CapabilityEvent(type=CapabilityEvent.SERVER_READY)))
 
         rospy.spin()

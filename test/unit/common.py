@@ -3,7 +3,12 @@ import os
 import re
 import sys
 
-from StringIO import StringIO
+try:
+    # Python 2
+    from cStringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
 
 
 def assert_raises(exception_classes, callable_obj=None, *args, **kwargs):

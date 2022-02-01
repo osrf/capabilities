@@ -109,7 +109,7 @@ def capability_provider_from_file_path(file_path):
     :raises: :py:exc:`OSError` if the given file does not exist
     """
     with open(os.path.abspath(file_path), 'r') as f:
-        return capability_provider_from_dict(yaml.load(f.read()), file_path)
+        return capability_provider_from_dict(yaml.safe_load(f.read()), file_path)
 
 
 def capability_provider_from_file(file_handle):
@@ -123,7 +123,7 @@ def capability_provider_from_file(file_handle):
     :rtype: :py:class:`CapabilityProvider`
     :raises: :py:exc:`OSError` if the given file does not exist
     """
-    return capability_provider_from_dict(yaml.load(file_handle.read()), file_handle.name)
+    return capability_provider_from_dict(yaml.safe_load(file_handle.read()), file_handle.name)
 
 
 def capability_provider_from_string(string, file_name='<string>'):
@@ -139,7 +139,7 @@ def capability_provider_from_string(string, file_name='<string>'):
     :rtype: :py:class:`CapabilityProvider`
     :raises: :py:exc:`AttributeError` if the given value for string is not a str
     """
-    return capability_provider_from_dict(yaml.load(string), file_name)
+    return capability_provider_from_dict(yaml.safe_load(string), file_name)
 
 
 def capability_provider_from_dict(spec, file_name='<dict>'):
@@ -197,7 +197,7 @@ def capability_provider_from_dict(spec, file_name='<dict>'):
         raise InvalidProvider("Invalid depends_on section, expected dict got: '{0}'".format(type(depends_on)),
                               file_name)
     valid_conditionals = ['provider']
-    for interface, conditions in depends_on.iteritems():
+    for interface, conditions in depends_on.items():
         if not isinstance(conditions, dict):
             raise InvalidProvider("Invalid depends_on conditional section, expected dict got: '{0}'"
                                   .format(type(conditions)), file_name)
